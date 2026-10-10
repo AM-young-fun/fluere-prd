@@ -1,0 +1,3726 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI API 统一平台 - 模型与渠道原型</title>
+  <style>
+    :root {
+      --bg: #f5f6f8;
+      --surface: #ffffff;
+      --surface-2: #eef4f3;
+      --ink: #1c2326;
+      --muted: #687377;
+      --line: #d9e0e3;
+      --line-strong: #bdc9ce;
+      --teal: #247a76;
+      --teal-2: #dff1ef;
+      --red: #b84242;
+      --red-2: #f8e3e3;
+      --amber: #9a6b13;
+      --amber-2: #f7edcc;
+      --green: #326d3a;
+      --green-2: #e3f2df;
+      --blue: #3b638e;
+      --blue-2: #e2ecf8;
+      --purple: #6b5a8e;
+      --purple-2: #ebe5f6;
+      --shadow: 0 14px 28px rgba(28, 35, 38, 0.08);
+      --radius: 8px;
+      --sidebar: 252px;
+      --topbar: 64px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, rgba(36, 122, 118, 0.05), rgba(255, 255, 255, 0) 260px),
+        var(--bg);
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: var(--sidebar) minmax(0, 1fr);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 18px 14px;
+      background: #20282b;
+      color: #f5f7f8;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      border-right: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #dff1ef;
+      color: #1b625e;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .brand-title {
+      min-width: 0;
+    }
+
+    .brand-title strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .brand-title span {
+      display: block;
+      font-size: 12px;
+      color: rgba(245,247,248,0.64);
+      margin-top: 2px;
+    }
+
+    .nav {
+      display: grid;
+      gap: 6px;
+    }
+
+    .nav button {
+      width: 100%;
+      min-height: 42px;
+      border: 0;
+      border-radius: 8px;
+      color: rgba(245,247,248,0.76);
+      background: transparent;
+      display: grid;
+      grid-template-columns: 24px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      text-align: left;
+    }
+
+    .nav button:hover,
+    .nav button.active {
+      color: #ffffff;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .nav .icon {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      color: inherit;
+      font-size: 15px;
+    }
+
+    .nav .count {
+      min-width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      color: rgba(245,247,248,0.72);
+      background: rgba(255,255,255,0.1);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.08);
+      color: rgba(245,247,248,0.74);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .main {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: var(--topbar) minmax(0, 1fr);
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      height: var(--topbar);
+      background: rgba(245, 246, 248, 0.86);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      gap: 16px;
+    }
+
+    .page-kicker {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.2;
+      margin-bottom: 3px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .search {
+      position: relative;
+      width: min(340px, 38vw);
+      min-width: 220px;
+    }
+
+    .search input {
+      width: 100%;
+      height: 38px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 0 12px 0 34px;
+      outline: none;
+    }
+
+    .search input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(36, 122, 118, 0.14);
+    }
+
+    .search span {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .content {
+      padding: 22px 24px 34px;
+      min-width: 0;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .metric {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 15px;
+      min-height: 104px;
+      display: grid;
+      align-content: space-between;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .metric strong {
+      font-size: 26px;
+      line-height: 1.15;
+      letter-spacing: 0;
+      margin-top: 8px;
+      display: block;
+    }
+
+    .metric small {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 7px;
+      display: block;
+    }
+
+    .layout-2 {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .layout-3 {
+      display: grid;
+      grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.3fr) minmax(330px, 0.8fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      min-height: 58px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .panel-header p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .panel-body {
+      padding: 16px;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      min-height: 36px;
+      border: 1px solid var(--line-strong);
+      background: var(--surface);
+      color: var(--ink);
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 12px;
+      font-weight: 650;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+
+    .btn.primary {
+      border-color: var(--teal);
+      background: var(--teal);
+      color: white;
+    }
+
+    .btn.primary:hover {
+      border-color: #1d6662;
+      background: #1d6662;
+      color: white;
+    }
+
+    .btn.danger {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .btn.icon-btn {
+      width: 36px;
+      padding: 0;
+    }
+
+    .btn.small {
+      min-height: 30px;
+      padding: 0 9px;
+      font-size: 12px;
+    }
+
+    .icon-only {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      display: inline-grid;
+      place-items: center;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .icon-only:hover {
+      color: var(--teal);
+      border-color: var(--teal);
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+      background: var(--surface);
+    }
+
+    th,
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+      font-size: 13px;
+    }
+
+    th {
+      color: var(--muted);
+      background: #f9fafb;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    tbody tr:hover {
+      background: #fbfcfc;
+    }
+
+    .model-name {
+      display: grid;
+      gap: 3px;
+      min-width: 160px;
+    }
+
+    .model-name strong {
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    .model-name span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 24px;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      border: 1px solid transparent;
+    }
+
+    .badge.green {
+      background: var(--green-2);
+      color: var(--green);
+      border-color: #c5e3be;
+    }
+
+    .badge.amber {
+      background: var(--amber-2);
+      color: var(--amber);
+      border-color: #ecd98d;
+    }
+
+    .badge.red {
+      background: var(--red-2);
+      color: var(--red);
+      border-color: #edc4c4;
+    }
+
+    .badge.blue {
+      background: var(--blue-2);
+      color: var(--blue);
+      border-color: #cadcf1;
+    }
+
+    .badge.purple {
+      background: var(--purple-2);
+      color: var(--purple);
+      border-color: #d9cfeb;
+    }
+
+    .badge.gray {
+      background: #edf0f2;
+      color: #556065;
+      border-color: #d8e0e3;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-right: 7px;
+      background: var(--line-strong);
+    }
+
+    .status-dot.green {
+      background: #45a65c;
+    }
+
+    .status-dot.amber {
+      background: #c99425;
+    }
+
+    .status-dot.red {
+      background: #c34c4c;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--ink);
+      min-height: 38px;
+      padding: 8px 10px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 76px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(36, 122, 118, 0.14);
+    }
+
+    .checkbox-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .ability-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfc;
+    }
+
+    .ability-check {
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .ability-check input {
+      width: 15px;
+      height: 15px;
+      min-height: 15px;
+      padding: 0;
+      accent-color: var(--teal);
+    }
+
+    .check-row {
+      min-height: 42px;
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr) 76px;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfc;
+    }
+
+    .fallback-row {
+      cursor: grab;
+    }
+
+    .fallback-row.dragging {
+      opacity: 0.52;
+      border-color: var(--teal);
+      background: var(--teal-2);
+    }
+
+    .model-pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfc;
+      min-height: 44px;
+    }
+
+    .check-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      min-height: 16px;
+      padding: 0;
+      accent-color: var(--teal);
+    }
+
+    .check-row input[type="number"] {
+      min-height: 30px;
+      padding: 4px 7px;
+      text-align: right;
+    }
+
+    .channel-mini {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .channel-mini strong {
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .channel-mini span {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .split-line {
+      height: 1px;
+      background: var(--line);
+      margin: 4px 0;
+    }
+
+    .notice {
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      padding: 12px;
+      background: #fbfcfc;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .notice strong {
+      color: var(--ink);
+    }
+
+    .notice.warn {
+      border-color: #ecd98d;
+      background: #fff9e5;
+      color: #6f530e;
+    }
+
+    .notice.good {
+      border-color: #c5e3be;
+      background: #f1faef;
+      color: #2e5e35;
+    }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .range-line {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 64px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type="range"] {
+      min-height: 24px;
+      padding: 0;
+      accent-color: var(--teal);
+    }
+
+    .segmented {
+      min-height: 36px;
+      display: inline-grid;
+      grid-auto-flow: column;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    .segmented button {
+      min-height: 34px;
+      border: 0;
+      border-right: 1px solid var(--line);
+      padding: 0 12px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .segmented button:last-child {
+      border-right: 0;
+    }
+
+    .segmented button.active {
+      background: var(--teal-2);
+      color: var(--teal);
+    }
+
+    .route-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .route-row {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 92px;
+      gap: 10px;
+      align-items: center;
+      background: #fbfcfc;
+    }
+
+    .route-row.changed {
+      border-color: var(--teal);
+      background: var(--teal-2);
+    }
+
+    .route-row strong {
+      display: block;
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .route-row small {
+      display: block;
+      color: var(--muted);
+      margin-top: 3px;
+      line-height: 1.35;
+    }
+
+    .route-row input {
+      min-height: 34px;
+      text-align: right;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .result-cell {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcfc;
+      min-height: 84px;
+      display: grid;
+      align-content: space-between;
+      gap: 8px;
+    }
+
+    .result-cell span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .result-cell strong {
+      font-size: 20px;
+      line-height: 1.1;
+    }
+
+    .progress {
+      height: 8px;
+      border-radius: 999px;
+      background: #e5eaec;
+      overflow: hidden;
+    }
+
+    .progress span {
+      height: 100%;
+      display: block;
+      background: var(--teal);
+      border-radius: 999px;
+      width: var(--w, 0%);
+    }
+
+    .chart-box {
+      width: 100%;
+      min-height: 380px;
+      height: 48vh;
+      max-height: 520px;
+    }
+
+    .ranking-name {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 160px;
+    }
+
+    .rank-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--teal);
+      flex: 0 0 auto;
+    }
+
+    .usage-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .usage-summary .result-cell {
+      min-height: 76px;
+    }
+
+    .monitor-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .monitor-card {
+      min-height: 92px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfc;
+      padding: 12px;
+      display: grid;
+      align-content: space-between;
+      gap: 8px;
+    }
+
+    .monitor-card span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .monitor-card strong {
+      font-size: 24px;
+      line-height: 1.1;
+    }
+
+    .health-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .health-row {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfc;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) 110px 110px 110px minmax(170px, 1fr);
+      gap: 12px;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .health-row strong,
+    .broadcast-row strong {
+      display: block;
+      line-height: 1.25;
+    }
+
+    .health-row small,
+    .broadcast-row small {
+      display: block;
+      color: var(--muted);
+      margin-top: 3px;
+      line-height: 1.35;
+    }
+
+    .broadcast-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .broadcast-row {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      background: #fbfcfc;
+    }
+
+    .broadcast-row.critical {
+      border-color: #edc4c4;
+      background: #fff4f4;
+    }
+
+    .broadcast-row.warn {
+      border-color: #ecd98d;
+      background: #fff9e5;
+    }
+
+    .broadcast-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(380px, 0.9fr);
+      gap: 16px;
+      align-items: start;
+      margin-top: 16px;
+    }
+
+    .pricing-row {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfc;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: minmax(160px, 1fr) 110px 110px 110px auto;
+      gap: 12px;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .pricing-row.warn {
+      border-color: #ecd98d;
+      background: #fff9e5;
+    }
+
+    .pricing-row.critical {
+      border-color: #edc4c4;
+      background: #fff4f4;
+    }
+
+    .pricing-row strong {
+      display: block;
+      line-height: 1.25;
+    }
+
+    .pricing-row small {
+      display: block;
+      color: var(--muted);
+      margin-top: 3px;
+      line-height: 1.35;
+    }
+
+    .playground-grid {
+      display: grid;
+      grid-template-columns: minmax(300px, 0.7fr) minmax(0, 1.3fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .playground-tabs {
+      width: 100%;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .playground-tabs button {
+      min-width: 0;
+      white-space: nowrap;
+    }
+
+    .protocol-options {
+      display: grid;
+      gap: 8px;
+    }
+
+    .protocol-option {
+      width: 100%;
+      min-height: 58px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #fbfcfc;
+      color: var(--ink);
+      display: grid;
+      gap: 4px;
+      text-align: left;
+    }
+
+    .protocol-option.active {
+      border-color: var(--teal);
+      background: var(--teal-2);
+      box-shadow: inset 0 0 0 1px rgba(36, 122, 118, 0.08);
+    }
+
+    .protocol-option strong {
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .protocol-option small {
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .path-rule-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .path-rule {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fbfcfc;
+      display: grid;
+      gap: 4px;
+      font-size: 13px;
+    }
+
+    .path-rule strong {
+      line-height: 1.25;
+    }
+
+    .path-rule code,
+    .endpoint-line code {
+      color: var(--teal);
+      font-weight: 800;
+    }
+
+    .endpoint-line {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcfc;
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .code-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .code-block {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #1f282b;
+      color: #ecf3f3;
+      overflow: hidden;
+    }
+
+    .code-block header {
+      min-height: 40px;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: rgba(236,243,243,0.72);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 14px;
+      overflow: auto;
+      max-height: 430px;
+      font-size: 12px;
+      line-height: 1.55;
+      tab-size: 2;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 78px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .timeline-item time {
+      color: var(--muted);
+      font-size: 12px;
+      padding-top: 2px;
+    }
+
+    .timeline-item div {
+      border-left: 3px solid var(--line-strong);
+      padding-left: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .timeline-item.good div {
+      border-color: #45a65c;
+    }
+
+    .timeline-item.warn div {
+      border-color: #c99425;
+    }
+
+    .timeline-item.bad div {
+      border-color: #c34c4c;
+    }
+
+    .empty {
+      min-height: 160px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--line-strong);
+      border-radius: 8px;
+      padding: 22px;
+      background: #fbfcfc;
+    }
+
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 100;
+      min-width: min(380px, calc(100vw - 44px));
+      max-width: 460px;
+      border-radius: 8px;
+      background: #20282b;
+      color: white;
+      box-shadow: 0 18px 40px rgba(28, 35, 38, 0.22);
+      padding: 13px 14px;
+      transform: translateY(16px);
+      opacity: 0;
+      pointer-events: none;
+      transition: 160ms ease;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 70;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(28, 35, 38, 0.46);
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      width: min(760px, 100%);
+      max-height: min(760px, calc(100vh - 48px));
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 24px 70px rgba(28, 35, 38, 0.28);
+    }
+
+    .modal-header,
+    .modal-footer {
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .modal-header {
+      border-bottom: 1px solid var(--line);
+    }
+
+    .modal-footer {
+      border-top: 1px solid var(--line);
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .modal-header p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .modal-body {
+      overflow: auto;
+      padding: 16px;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast strong {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .mobile-menu {
+      display: none;
+    }
+
+    .nowrap {
+      white-space: nowrap;
+    }
+
+    @media (max-width: 1120px) {
+      .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .layout-2,
+      .layout-3,
+      .playground-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .search {
+        width: 260px;
+      }
+    }
+
+    @media (max-width: 780px) {
+      :root {
+        --sidebar: 0px;
+        --topbar: auto;
+      }
+
+      .app {
+        display: block;
+      }
+
+      .sidebar {
+        position: fixed;
+        z-index: 30;
+        left: 0;
+        top: 0;
+        width: 280px;
+        transform: translateX(-100%);
+        transition: transform 180ms ease;
+      }
+
+      body.menu-open .sidebar {
+        transform: translateX(0);
+      }
+
+      .mobile-menu {
+        display: inline-grid;
+      }
+
+      .topbar {
+        height: auto;
+        min-height: 64px;
+        padding: 12px 14px;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+
+      .top-actions {
+        grid-column: 1 / -1;
+        justify-content: stretch;
+      }
+
+      .search {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .content {
+        padding: 16px 14px 28px;
+      }
+
+      .summary-grid,
+      .form-grid,
+      .result-grid,
+      .usage-summary,
+      .monitor-grid,
+      .code-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .health-row,
+      .broadcast-row,
+      .pricing-grid,
+      .pricing-row {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-backdrop {
+        align-items: end;
+        padding: 0;
+      }
+
+      .modal {
+        width: 100%;
+        max-height: 88vh;
+        border-radius: 8px 8px 0 0;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+
+      table {
+        min-width: 680px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="后台导航">
+      <div class="brand">
+        <div class="brand-mark">AI</div>
+        <div class="brand-title">
+          <strong>统一 API 平台</strong>
+          <span>模型与渠道治理原型</span>
+        </div>
+      </div>
+      <nav class="nav" id="nav"></nav>
+      <div class="sidebar-footer">
+        <strong>当前演示数据</strong><br>
+        5 个模型、7 个渠道、3 组客户负载规则。所有操作只在浏览器本地模拟。
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-only mobile-menu" type="button" id="menuBtn" title="打开导航">☰</button>
+        <div>
+          <div class="page-kicker" id="pageKicker">内部平台</div>
+          <h1 id="pageTitle">模型管理</h1>
+        </div>
+        <div class="top-actions">
+          <div class="search">
+            <span>⌕</span>
+            <input id="globalSearch" type="search" placeholder="搜索模型、渠道、客户">
+          </div>
+          <button class="btn primary" type="button" id="quickTestBtn">▷ 运行测试</button>
+        </div>
+      </header>
+
+      <section class="content">
+        <section class="summary-grid" aria-label="关键指标">
+          <div class="metric">
+            <span>已保障模型</span>
+            <strong id="metricModels">0</strong>
+            <small id="metricMapped">0 个已配置渠道映射</small>
+          </div>
+          <div class="metric">
+            <span>可用渠道</span>
+            <strong id="metricChannels">0</strong>
+            <small id="metricHealthy">0 个健康，0 个降级</small>
+          </div>
+          <div class="metric">
+            <span>本月测试覆盖</span>
+            <strong id="metricCoverage">0%</strong>
+            <small>按模型 + 渠道映射统计</small>
+          </div>
+          <div class="metric">
+            <span>加权成本样例</span>
+            <strong id="metricCost">0折</strong>
+            <small id="metricCostModel">默认模型</small>
+          </div>
+        </section>
+
+        <section class="view active" id="view-models" data-title="模型管理" data-kicker="模型到渠道映射">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>模型清单</h2>
+                <p>维护需要保障的模型，并选择可承接该模型的渠道。</p>
+              </div>
+              <div class="toolbar">
+                <button class="btn primary" type="button" id="addModelBtn">＋ 新增模型</button>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>模型</th>
+                      <th>输入/输出能力</th>
+                      <th>渠道数</th>
+                      <th>默认负载</th>
+                      <th>成本价</th>
+                      <th>质量</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="modelTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <section class="view" id="view-playground" data-title="Playground" data-kicker="接入代码与协议兼容">
+          <div class="playground-grid">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>接入场景</h2>
+                  <p>URI path 决定外部协议，平台在内部完成转换兼容。</p>
+                </div>
+              </div>
+              <div class="panel-body stack">
+                <div class="field">
+                  <label>能力类型</label>
+                  <div class="segmented playground-tabs" id="playgroundTabs" role="tablist" aria-label="Playground 能力类型"></div>
+                </div>
+                <div class="field">
+                  <label>协议规范</label>
+                  <div class="protocol-options" id="playgroundProtocolOptions"></div>
+                </div>
+                <div class="endpoint-line">
+                  <span>当前 Endpoint</span>
+                  <code id="playgroundEndpoint">--</code>
+                  <span id="playgroundProtocolText">--</span>
+                </div>
+                <div class="notice good" id="playgroundCompatNote">请选择接入场景。</div>
+                <div class="split-line"></div>
+                <div class="path-rule-list" id="pathRuleList"></div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>接入代码</h2>
+                  <p>示例只演示协议包装，真实鉴权使用业务应用 API Key。</p>
+                </div>
+                <button class="btn" type="button" id="runPlaygroundBtn">▷ 模拟调用</button>
+              </div>
+              <div class="panel-body stack">
+                <div class="code-grid">
+                  <div class="code-block">
+                    <header><span>cURL</span><span id="playgroundCurlLabel">--</span></header>
+                    <pre><code id="playgroundCurlCode"></code></pre>
+                  </div>
+                  <div class="code-block">
+                    <header><span>JavaScript</span><span>fetch</span></header>
+                    <pre><code id="playgroundJsCode"></code></pre>
+                  </div>
+                  <div class="code-block">
+                    <header><span>Request JSON</span><span id="playgroundRequestLabel">--</span></header>
+                    <pre><code id="playgroundRequestCode"></code></pre>
+                  </div>
+                  <div class="code-block">
+                    <header><span>Response JSON</span><span id="playgroundResponseLabel">--</span></header>
+                    <pre><code id="playgroundResponseCode"></code></pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-ranking" data-title="模型排行榜" data-kicker="消耗量趋势与排行">
+          <div class="layout-2">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>消耗量堆叠面积图</h2>
+                  <p>按模型聚合每日消耗量，展示整体消耗结构和增长趋势。</p>
+                </div>
+                <div class="segmented" id="usageRange">
+                  <button type="button" class="active">近 14 天</button>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="usage-summary">
+                  <div class="result-cell">
+                    <span>总消耗量</span>
+                    <strong id="usageTotal">0</strong>
+                  </div>
+                  <div class="result-cell">
+                    <span>最高模型</span>
+                    <strong id="usageTopModel">--</strong>
+                  </div>
+                  <div class="result-cell">
+                    <span>峰值日</span>
+                    <strong id="usagePeakDay">--</strong>
+                  </div>
+                </div>
+                <div class="chart-box" id="usageStackedAreaChart"></div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>模型排行</h2>
+                  <p>按当前周期总消耗量排序。</p>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>模型</th>
+                        <th>总量</th>
+                        <th>占比</th>
+                        <th>峰值</th>
+                      </tr>
+                    </thead>
+                    <tbody id="usageRankingTable"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-monitor" data-title="监控大盘" data-kicker="线上可用性与费用异常">
+          <div class="layout-2">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>线上模型可用情况</h2>
+                  <p>关注延迟卡顿、不可调用、被下线和健康恢复。</p>
+                </div>
+                <button class="btn" type="button" id="refreshMonitorBtn">↻ 刷新监控</button>
+              </div>
+              <div class="panel-body">
+                <div class="monitor-grid">
+                  <div class="monitor-card">
+                    <span>在线模型</span>
+                    <strong id="monitorOnlineModels">0</strong>
+                  </div>
+                  <div class="monitor-card">
+                    <span>延迟卡顿</span>
+                    <strong id="monitorLaggingModels">0</strong>
+                  </div>
+                  <div class="monitor-card">
+                    <span>不可调用</span>
+                    <strong id="monitorDownModels">0</strong>
+                  </div>
+                  <div class="monitor-card">
+                    <span>被下线</span>
+                    <strong id="monitorOfflineModels">0</strong>
+                  </div>
+                </div>
+                <div class="health-grid" id="modelHealthGrid"></div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>渠道调用与费用播报</h2>
+                  <p>展示调用量、成本环比和费用激增异常。</p>
+                </div>
+              </div>
+              <div class="panel-body stack">
+                <div class="result-grid">
+                  <div class="result-cell">
+                    <span>今日调用量</span>
+                    <strong id="monitorCalls">0</strong>
+                  </div>
+                  <div class="result-cell">
+                    <span>今日费用</span>
+                    <strong id="monitorCost">¥0</strong>
+                  </div>
+                  <div class="result-cell">
+                    <span>异常播报</span>
+                    <strong id="monitorAlerts">0</strong>
+                  </div>
+                </div>
+                <div class="broadcast-list" id="costBroadcastList"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pricing-grid">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>上下游调价监控</h2>
+                  <p>要求供应商每笔请求返回实际扣费值，并按同 token 口径监控单位费用波动。</p>
+                </div>
+              </div>
+              <div class="panel-body stack">
+                <div class="result-grid">
+                  <div class="result-cell">
+                    <span>接收扣费值覆盖</span>
+                    <strong id="pricingCoverage">0%</strong>
+                  </div>
+                  <div class="result-cell">
+                    <span>单位成本预警</span>
+                    <strong id="pricingWarnings">0</strong>
+                  </div>
+                  <div class="result-cell">
+                    <span>最大波动</span>
+                    <strong id="pricingMaxDelta">0%</strong>
+                  </div>
+                </div>
+                <div class="health-grid" id="pricingMonitorList"></div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>供应商扣费流水</h2>
+                  <p>展示最近请求返回的实际扣费值，用于对账和调价追踪。</p>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>请求</th>
+                        <th>供应商</th>
+                        <th>token</th>
+                        <th>扣费</th>
+                        <th>状态</th>
+                      </tr>
+                    </thead>
+                    <tbody id="billingTraceTable"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-channels" data-title="模型渠道配置" data-kicker="渠道、价格与能力">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>渠道配置</h2>
+                <p>渠道能力、折扣、延迟和健康状态会影响路由与成本估算。</p>
+              </div>
+              <button class="btn primary" type="button" id="addChannelBtn">＋ 新增渠道</button>
+            </div>
+            <div class="panel-body">
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>渠道</th>
+                      <th>输入/输出能力</th>
+                      <th>models 字段</th>
+                      <th>协议</th>
+                      <th>折扣</th>
+                      <th>P95</th>
+                      <th>质量</th>
+                      <th>月测</th>
+                    </tr>
+                  </thead>
+                  <tbody id="channelTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-tests" data-title="模型测试模块" data-kicker="自动检测与月度探针">
+          <div class="layout-3">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>发起测试</h2>
+                  <p>模型新增或渠道变更后可立即执行。</p>
+                </div>
+              </div>
+              <div class="panel-body stack">
+                <div class="field">
+                  <label for="testModelSelect">模型</label>
+                  <select id="testModelSelect"></select>
+                </div>
+                <div class="field">
+                  <label for="testChannelSelect">渠道</label>
+                  <select id="testChannelSelect"></select>
+                </div>
+                <div class="field">
+                  <label for="testPromptInput">测试输入</label>
+                  <textarea id="testPromptInput">请用 JSON 返回：{"ok": true, "summary": "渠道探针成功"}</textarea>
+                </div>
+                <button class="btn primary" type="button" id="runProbeBtn">▷ 执行自动测试</button>
+                <div class="result-grid">
+                  <div class="result-cell">
+                    <span>结构校验</span>
+                    <strong id="probeSchema">--</strong>
+                  </div>
+                  <div class="result-cell">
+                    <span>延迟</span>
+                    <strong id="probeLatency">--</strong>
+                  </div>
+                  <div class="result-cell">
+                    <span>成本</span>
+                    <strong id="probeCost">--</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>测试记录</h2>
+                  <p>模拟展示渠道质量会随测试结果更新。</p>
+                </div>
+                <button class="btn" type="button" id="runAllMonthlyBtn">↻ 执行本月计划</button>
+              </div>
+              <div class="panel-body">
+                <div class="timeline" id="probeTimeline"></div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>月度测试计划</h2>
+                  <p>每个渠道每月至少跑一次真实探针。</p>
+                </div>
+              </div>
+              <div class="panel-body stack" id="monthlyPlan"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-load" data-title="客户特殊负载" data-kicker="默认规则继承与差异覆盖">
+          <div class="layout-2">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>客户负载策略</h2>
+                  <p>默认规则由后台模型映射生成，客户仅覆盖差异项。</p>
+                </div>
+                <button class="btn primary" type="button" id="saveCustomerRuleBtn">✓ 保存客户规则</button>
+              </div>
+              <div class="panel-body stack">
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="customerSelect">大客户</label>
+                    <select id="customerSelect"></select>
+                  </div>
+                  <div class="field">
+                    <label for="customerModelSelect">模型</label>
+                    <select id="customerModelSelect"></select>
+                  </div>
+                  <div class="field">
+                    <label for="routingModeSelect">路由偏好</label>
+                    <select id="routingModeSelect">
+                      <option value="balanced">均衡</option>
+                      <option value="latency">低延迟优先</option>
+                      <option value="cost">低成本优先</option>
+                      <option value="quality">高质量优先</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="maxLatencyInput">客户 P95 上限 ms</label>
+                    <input id="maxLatencyInput" type="number" min="1" step="10">
+                  </div>
+                </div>
+                <div class="split-line"></div>
+                <div class="route-list" id="customerRoutes"></div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>差异与结果</h2>
+                  <p>只展示客户覆盖项和最终生效路由。</p>
+                </div>
+              </div>
+              <div class="panel-body stack">
+                <div class="notice good" id="inheritanceResult">已继承默认规则。</div>
+                <div class="result-grid">
+                  <div class="result-cell">
+                    <span>最终渠道</span>
+                    <strong id="finalChannelCount">0</strong>
+                  </div>
+                  <div class="result-cell">
+                    <span>平均折扣</span>
+                    <strong id="finalDiscount">0折</strong>
+                  </div>
+                  <div class="result-cell">
+                    <span>估算 P95</span>
+                    <strong id="finalLatency">0ms</strong>
+                  </div>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>渠道</th>
+                        <th>来源</th>
+                        <th>权重</th>
+                        <th>折扣</th>
+                        <th>成本贡献</th>
+                      </tr>
+                    </thead>
+                    <tbody id="effectiveRouteTable"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-cost" data-title="成本估算" data-kicker="按负载配比估算最终成本价">
+          <div class="layout-2">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>模型成本价</h2>
+                  <p>基于当前模型渠道权重计算相对成本。</p>
+                </div>
+                <div class="segmented" id="costMode">
+                  <button type="button" data-mode="discount" class="active">折扣</button>
+                  <button type="button" data-mode="unit">单位成本</button>
+                </div>
+              </div>
+              <div class="panel-body stack">
+                <div class="field">
+                  <label for="costModelSelect">模型</label>
+                  <select id="costModelSelect"></select>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>渠道</th>
+                        <th>权重</th>
+                        <th>流量占比</th>
+                        <th>渠道折扣</th>
+                        <th>贡献值</th>
+                      </tr>
+                    </thead>
+                    <tbody id="costTable"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>算法校验</h2>
+                  <p>结果用于演示，真实成本需要纳入更多变量。</p>
+                </div>
+              </div>
+              <div class="panel-body stack">
+                <div class="result-grid">
+                  <div class="result-cell">
+                    <span>加权折扣</span>
+                    <strong id="weightedDiscount">0折</strong>
+                  </div>
+                  <div class="result-cell">
+                    <span>相对倍率</span>
+                    <strong id="weightedRatio">0x</strong>
+                  </div>
+                  <div class="result-cell">
+                    <span>参与渠道</span>
+                    <strong id="weightedCount">0</strong>
+                  </div>
+                </div>
+                <div class="notice warn" id="algorithmNote">
+                  <strong>算法意见</strong>
+                  如果“权重”真实等于流量分配比例，你的加权算法方向是对的。但单位要统一：6折是 0.6，5.5折是 0.55，不应该把 5.5 当成倍率。
+                </div>
+                <div class="notice">
+                  进一步做真实计费时，建议把输入/输出 token 单价、失败重试、降级切换、不同客户的实际命中比例、图片/视频任务失败成本都纳入期望成本模型。
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="mappingModal" aria-hidden="true">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="mappingModalTitle">
+      <header class="modal-header">
+        <div>
+          <h2 id="mappingModalTitle">映射编辑</h2>
+          <p id="mappingSub">选择模型后编辑渠道、权重和测试。</p>
+        </div>
+        <button class="icon-only" type="button" id="mappingCloseBtn" title="关闭">×</button>
+      </header>
+      <div class="modal-body stack">
+        <div class="form-grid">
+          <div class="field">
+            <label for="modelNameInput">模型 name</label>
+            <input id="modelNameInput" type="text">
+          </div>
+          <div class="field">
+            <label>输入能力类型</label>
+            <div class="checkbox-grid" id="modelInputAbilities"></div>
+          </div>
+          <div class="field">
+            <label>输出能力类型</label>
+            <div class="checkbox-grid" id="modelOutputAbilities"></div>
+          </div>
+          <div class="field full">
+            <label>Fallback 顺序、可选渠道与默认权重</label>
+            <div class="checkbox-grid" id="channelChecks"></div>
+          </div>
+        </div>
+        <div class="notice good" id="mappingResult">
+          <strong>当前模型成本</strong>
+          <span id="mappingCostText">请选择模型。</span>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn" type="button" id="testSelectedModelBtn">▷ 自动测试该模型</button>
+        <button class="btn" type="button" id="cloneRuleBtn">⧉ 继承到客户规则</button>
+        <button class="btn" type="button" id="mappingCancelBtn">取消</button>
+        <button class="btn primary" type="button" id="saveMappingBtn">✓ 保存映射</button>
+      </footer>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="channelModal" aria-hidden="true">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="channelModalTitle">
+      <header class="modal-header">
+        <div>
+          <h2 id="channelModalTitle">编辑渠道</h2>
+          <p id="channelEditorSub">选择渠道后配置能力与月度测试。</p>
+        </div>
+        <button class="icon-only" type="button" id="channelCloseBtn" title="关闭">×</button>
+      </header>
+      <div class="modal-body stack">
+        <div class="form-grid">
+          <div class="field">
+            <label for="channelNameInput">渠道名称</label>
+            <input id="channelNameInput" type="text">
+          </div>
+          <div class="field">
+            <label for="channelProtocolInput">标准格式</label>
+            <select id="channelProtocolInput">
+              <option>OpenAI Responses</option>
+              <option>OpenAI Completions</option>
+              <option>Anthropic Messages</option>
+              <option>Jev</option>
+              <option>gptimage</option>
+              <option>nanobanana</option>
+              <option>grok</option>
+              <option>seedance</option>
+              <option>minimax-h3</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>输入能力类型</label>
+            <div class="checkbox-grid" id="channelInputAbilities"></div>
+          </div>
+          <div class="field">
+            <label>输出能力类型</label>
+            <div class="checkbox-grid" id="channelOutputAbilities"></div>
+          </div>
+          <div class="field">
+            <label for="channelDiscountInput">成本折扣</label>
+            <input id="channelDiscountInput" type="number" min="0" max="2" step="0.01">
+          </div>
+          <div class="field">
+            <label for="channelLatencyInput">P95 响应时间 ms</label>
+            <input id="channelLatencyInput" type="number" min="1" step="10">
+          </div>
+          <div class="field">
+            <label for="channelSuccessInput">成功率 %</label>
+            <input id="channelSuccessInput" type="number" min="0" max="100" step="0.1">
+          </div>
+          <div class="field">
+            <label for="monthlyDayInput">月度测试日</label>
+            <select id="monthlyDayInput"></select>
+          </div>
+          <div class="field">
+            <label for="channelStatusInput">渠道状态</label>
+            <select id="channelStatusInput">
+              <option value="healthy">healthy</option>
+              <option value="degraded">degraded</option>
+              <option value="unhealthy">unhealthy</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label>标准 models 字段</label>
+            <div class="toolbar" style="margin-bottom:8px;">
+              <button class="btn small" type="button" id="syncChannelModelsBtn">↻ 获取 models</button>
+            </div>
+            <div class="model-pill-list" id="channelModelsList"></div>
+          </div>
+        </div>
+        <div class="notice" id="channelResult">选择一个渠道开始编辑。</div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn" type="button" id="channelCancelBtn">取消</button>
+        <button class="btn primary" type="button" id="saveChannelBtn">✓ 保存渠道</button>
+      </footer>
+    </section>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <script>
+    const state = {
+      activeView: "models",
+      selectedModelId: "gpt-6-astra",
+      selectedChannelId: "github-proxy",
+      selectedCustomerId: "acme",
+      selectedCostMode: "discount",
+      selectedPlaygroundTab: "text",
+      selectedPlaygroundScenario: "openai_chat",
+      selectedPlaygroundScenarioByTab: {
+        text: "openai_chat",
+        judgement: "jev_judgement",
+        image: "gpt_image",
+        video: "seedance20"
+      },
+      usageDates: ["09-26", "09-27", "09-28", "09-29", "09-30", "10-01", "10-02", "10-03", "10-04", "10-05", "10-06", "10-07", "10-08", "10-09"],
+      usageSeries: {
+        "gpt-6-astra": [42, 46, 49, 55, 58, 62, 71, 74, 78, 82, 91, 96, 104, 112],
+        "gpt-6.1-sol": [34, 38, 40, 44, 51, 53, 59, 63, 66, 72, 78, 83, 90, 94],
+        "claude-5.1-fable": [18, 21, 24, 26, 29, 31, 33, 35, 39, 41, 44, 46, 49, 53],
+        "image-pro": [9, 11, 13, 16, 18, 20, 21, 24, 27, 28, 31, 35, 38, 42],
+        "video-hd": [3, 4, 5, 5, 7, 8, 9, 10, 11, 13, 14, 16, 18, 21]
+      },
+      modelHealth: [
+        { modelId: "gpt-6-astra", status: "healthy", p95: 980, errorRate: 0.4, channel: "微软gpt账号", event: "稳定运行", updatedAt: "10:18" },
+        { modelId: "gpt-6.1-sol", status: "lagging", p95: 2380, errorRate: 1.8, channel: "token360", event: "P95 延迟连续 12 分钟高于阈值", updatedAt: "10:16" },
+        { modelId: "claude-5.1-fable", status: "down", p95: 0, errorRate: 18.6, channel: "aws map账号", event: "上游 5xx 激增，自动切到 openrouter 兜底", updatedAt: "10:12" },
+        { modelId: "image-pro", status: "healthy", p95: 8200, errorRate: 2.1, channel: "byteplus", event: "图片任务队列正常", updatedAt: "10:10" },
+        { modelId: "video-hd", status: "offline", p95: 0, errorRate: 0, channel: "byteplus", event: "灰度下线，等待月度探针复核", updatedAt: "09:58" }
+      ],
+      channelUsage: [
+        { channelId: "github-proxy", calls: 128400, cost: 1840, growth: 18, severity: "normal", message: "调用量平稳，费用在预算内。" },
+        { channelId: "microsoft-gpt", calls: 176900, cost: 3920, growth: 42, severity: "warn", message: "文本与图片请求同时上涨，小时费用超过均值 42%。" },
+        { channelId: "aws-map", calls: 36800, cost: 1180, growth: 96, severity: "critical", message: "失败重试导致费用激增，已触发限流保护。" },
+        { channelId: "token360", calls: 219600, cost: 2060, growth: 22, severity: "normal", message: "低延迟流量增长，暂未触发预算风险。" },
+        { channelId: "blockrun", calls: 52400, cost: 2410, growth: 71, severity: "warn", message: "视频与音频任务占比异常上升，建议排查客户任务。" },
+        { channelId: "byteplus", calls: 41200, cost: 4860, growth: 108, severity: "critical", message: "视频生成费用激增，已播报到值班群。" },
+        { channelId: "openrouter", calls: 98200, cost: 1730, growth: 14, severity: "normal", message: "兜底流量正常，未超过成本阈值。" }
+      ],
+      pricingMonitor: [
+        { channelId: "github-proxy", modelId: "gpt-6-astra", baselinePerK: 0.014, currentPerK: 0.015, sampleTokens: 200000, coverage: 99.8 },
+        { channelId: "microsoft-gpt", modelId: "gpt-6-astra", baselinePerK: 0.015, currentPerK: 0.021, sampleTokens: 200000, coverage: 100 },
+        { channelId: "aws-map", modelId: "claude-5.1-fable", baselinePerK: 0.018, currentPerK: 0.029, sampleTokens: 200000, coverage: 96.4 },
+        { channelId: "token360", modelId: "gpt-6.1-sol", baselinePerK: 0.011, currentPerK: 0.012, sampleTokens: 200000, coverage: 99.2 },
+        { channelId: "blockrun", modelId: "video-hd", baselinePerK: 0.026, currentPerK: 0.039, sampleTokens: 200000, coverage: 94.1 },
+        { channelId: "byteplus", modelId: "video-hd", baselinePerK: 0.032, currentPerK: 0.052, sampleTokens: 200000, coverage: 98.7 },
+        { channelId: "openrouter", modelId: "claude-5.1-fable", baselinePerK: 0.017, currentPerK: 0.018, sampleTokens: 200000, coverage: 99.5 }
+      ],
+      billingTraces: [
+        { requestId: "req_9182", channelId: "byteplus", modelId: "video-hd", tokens: 18420, charged: 0.958, returned: true, time: "10:19" },
+        { requestId: "req_9176", channelId: "aws-map", modelId: "claude-5.1-fable", tokens: 4280, charged: 0.124, returned: true, time: "10:18" },
+        { requestId: "req_9171", channelId: "microsoft-gpt", modelId: "gpt-6-astra", tokens: 6120, charged: 0.129, returned: true, time: "10:18" },
+        { requestId: "req_9165", channelId: "blockrun", modelId: "video-hd", tokens: 15200, charged: 0.593, returned: true, time: "10:17" },
+        { requestId: "req_9159", channelId: "github-proxy", modelId: "gpt-6-astra", tokens: 3400, charged: 0.051, returned: true, time: "10:16" },
+        { requestId: "req_9152", channelId: "token360", modelId: "gpt-6.1-sol", tokens: 2880, charged: 0.035, returned: true, time: "10:15" },
+        { requestId: "req_9148", channelId: "openrouter", modelId: "claude-5.1-fable", tokens: 3900, charged: 0.070, returned: true, time: "10:14" },
+        { requestId: "req_9141", channelId: "aws-map", modelId: "claude-5.1-fable", tokens: 5100, charged: 0, returned: false, time: "10:13" }
+      ],
+      models: [
+        {
+          id: "gpt-6-astra",
+          name: "gpt-6-astra",
+          inputAbilities: ["text", "image"],
+          outputAbilities: ["text"],
+          desc: "前沿通用文本模型",
+          channels: [
+            { channelId: "github-proxy", weight: 120 },
+            { channelId: "microsoft-gpt", weight: 180 },
+            { channelId: "openrouter", weight: 80 }
+          ],
+          quality: 96,
+          lastTest: "2026-10-03"
+        },
+        {
+          id: "gpt-6.1-sol",
+          name: "gpt-6.1-sol",
+          inputAbilities: ["text"],
+          outputAbilities: ["text"],
+          desc: "前沿低延迟文本模型",
+          channels: [
+            { channelId: "token360", weight: 220 },
+            { channelId: "microsoft-gpt", weight: 100 },
+            { channelId: "openrouter", weight: 60 }
+          ],
+          quality: 91,
+          lastTest: "2026-10-08"
+        },
+        {
+          id: "claude-5.1-fable",
+          name: "claude-5.1-fable",
+          inputAbilities: ["text", "image"],
+          outputAbilities: ["text"],
+          desc: "前沿 Anthropic Messages 模型",
+          channels: [
+            { channelId: "openrouter", weight: 220 },
+            { channelId: "aws-map", weight: 100 },
+            { channelId: "blockrun", weight: 60 }
+          ],
+          quality: 93,
+          lastTest: "2026-09-26"
+        },
+        {
+          id: "image-pro",
+          name: "image-pro",
+          inputAbilities: ["text", "image"],
+          outputAbilities: ["image"],
+          desc: "图片生成与编辑",
+          channels: [
+            { channelId: "microsoft-gpt", weight: 90 },
+            { channelId: "byteplus", weight: 180 },
+            { channelId: "blockrun", weight: 80 },
+            { channelId: "openrouter", weight: 40 }
+          ],
+          quality: 88,
+          lastTest: "2026-10-01"
+        },
+        {
+          id: "video-hd",
+          name: "video-hd",
+          inputAbilities: ["text", "image"],
+          outputAbilities: ["video"],
+          desc: "高清视频生成",
+          channels: [
+            { channelId: "byteplus", weight: 180 },
+            { channelId: "blockrun", weight: 80 },
+            { channelId: "aws-map", weight: 60 }
+          ],
+          quality: 84,
+          lastTest: "2026-09-15"
+        }
+      ],
+      channels: [
+        { id: "github-proxy", name: "github账号代理", inputAbilities: ["text", "image"], outputAbilities: ["text"], models: ["gpt-6-astra", "gpt-6.1-sol"], lastModelsSync: "10:06", protocol: "OpenAI Responses", discount: 0.62, latency: 880, success: 98.8, status: "healthy", monthlyDay: 2 },
+        { id: "microsoft-gpt", name: "微软gpt账号", inputAbilities: ["text", "image"], outputAbilities: ["text", "image"], models: ["gpt-6-astra", "gpt-6.1-sol", "image-pro"], lastModelsSync: "10:08", protocol: "OpenAI Responses", discount: 0.60, latency: 960, success: 99.1, status: "healthy", monthlyDay: 3 },
+        { id: "aws-map", name: "aws map账号", inputAbilities: ["text", "image"], outputAbilities: ["text", "video"], models: ["claude-5.1-fable", "video-hd"], lastModelsSync: "10:04", protocol: "Jev", discount: 0.66, latency: 1400, success: 97.9, status: "degraded", monthlyDay: 5 },
+        { id: "token360", name: "token360", inputAbilities: ["text"], outputAbilities: ["text"], models: ["gpt-6-astra", "gpt-6.1-sol"], lastModelsSync: "10:11", protocol: "OpenAI Completions", discount: 0.55, latency: 620, success: 98.2, status: "healthy", monthlyDay: 7 },
+        { id: "blockrun", name: "blockrun", inputAbilities: ["text", "image"], outputAbilities: ["text", "image", "video", "audio"], models: ["claude-5.1-fable", "image-pro", "video-hd"], lastModelsSync: "10:02", protocol: "Jev", discount: 0.58, latency: 8200, success: 95.4, status: "degraded", monthlyDay: 11 },
+        { id: "byteplus", name: "byteplus", inputAbilities: ["text", "image", "video"], outputAbilities: ["image", "video", "audio"], models: ["image-pro", "video-hd"], lastModelsSync: "10:09", protocol: "seedance", discount: 0.64, latency: 52000, success: 96.4, status: "healthy", monthlyDay: 18 },
+        { id: "openrouter", name: "openrouter", inputAbilities: ["text", "image"], outputAbilities: ["text", "image"], models: ["gpt-6-astra", "gpt-6.1-sol", "claude-5.1-fable", "image-pro"], lastModelsSync: "10:07", protocol: "OpenAI Responses", discount: 0.57, latency: 1180, success: 97.2, status: "healthy", monthlyDay: 20 }
+      ],
+      customers: [
+        {
+          id: "acme",
+          name: "Acme 金融",
+          mode: "latency",
+          maxLatency: 800,
+          overrides: {
+            "gpt-6-astra": {
+              "github-proxy": 180,
+              "microsoft-gpt": 220,
+              "openrouter": 0
+            }
+          }
+        },
+        {
+          id: "northstar",
+          name: "Northstar 电商",
+          mode: "cost",
+          maxLatency: 1500,
+          overrides: {
+            "gpt-6-astra": {
+              "token360": 180,
+              "openrouter": 240
+            },
+            "image-pro": {
+              "byteplus": 220,
+              "blockrun": 120
+            }
+          }
+        },
+        {
+          id: "apollo",
+          name: "Apollo 内容",
+          mode: "quality",
+          maxLatency: 2200,
+          overrides: {}
+        }
+      ],
+      tests: [
+        { time: "10-08 11:20", type: "good", text: "gpt-6.1-sol / token360 自动测试通过，结构校验通过，延迟 615ms。" },
+        { time: "10-03 09:14", type: "good", text: "gpt-6-astra / 微软gpt账号 月度探针通过，成本折扣 6折。" },
+        { time: "09-26 16:42", type: "warn", text: "claude-5.1-fable / aws map账号 响应时间超过阈值，渠道标记 degraded。" },
+        { time: "09-15 02:10", type: "warn", text: "video-hd / byteplus 视频生成耗时偏高，保留低权重。" }
+      ]
+    };
+
+    const navItems = [
+      { id: "models", icon: "□", label: "模型管理", count: "5" },
+      { id: "playground", icon: "⌘", label: "Playground", count: "API" },
+      { id: "ranking", icon: "▥", label: "模型排行榜", count: "量" },
+      { id: "channels", icon: "≡", label: "渠道配置", count: "7" },
+      { id: "monitor", icon: "◌", label: "监控大盘", count: "3" },
+      { id: "tests", icon: "▷", label: "模型测试", count: "月" },
+      { id: "load", icon: "↱", label: "客户负载", count: "3" },
+      { id: "cost", icon: "¥", label: "成本估算", count: "折" }
+    ];
+
+    const abilityLabel = {
+      text: "文本",
+      video: "视频",
+      image: "图片",
+      audio: "音频"
+    };
+
+    const inputAbilityOptions = ["text", "video", "image"];
+    const outputAbilityOptions = ["text", "video", "image", "audio"];
+
+    const statusLabel = {
+      healthy: "健康",
+      degraded: "降级",
+      unhealthy: "异常"
+    };
+
+    const pathRules = [
+      { category: "text", path: "/v1/chat/completions", protocol: "OpenAI Chat Completions", note: "文本模型 OpenAI 格式，内部兼容层转为统一文本请求。" },
+      { category: "text", path: "/v1/responses", protocol: "OpenAI Responses", note: "文本模型 OpenAI Responses 格式，按 path 进入 OpenAI 适配器。" },
+      { category: "text", path: "/v1/messages", protocol: "Anthropic Messages", note: "同一文本模型可用 Anthropic 格式，内部转换为统一文本请求。" },
+      { category: "judgement", path: "/jev/v1/judgements", protocol: "Jev Schema", note: "判断模型统一支持 Jev schema。" },
+      { category: "image", path: "/v1/images/generations", protocol: "gpt-image", note: "图片模型统一返回 gpt-image 兼容格式。" },
+      { category: "video", path: "/v1/videos/seedance2.0", protocol: "seedance2.0", note: "视频模型 seedance2.0 入参/出参规范。" },
+      { category: "video", path: "/v1/videos/seedance2.5", protocol: "seedance2.5", note: "视频模型 seedance2.5 入参/出参规范。" },
+      { category: "video", path: "/v1/videos/minimax-h3", protocol: "minimax h3", note: "视频模型 minimax h3 入参/出参规范。" }
+    ];
+
+    const playgroundTabs = [
+      { id: "text", label: "文本" },
+      { id: "judgement", label: "判断" },
+      { id: "image", label: "图片" },
+      { id: "video", label: "视频" }
+    ];
+
+    const playgroundScenarios = [
+      {
+        id: "openai_chat",
+        category: "text",
+        label: "OpenAI Chat Completions",
+        endpoint: "/v1/chat/completions",
+        protocol: "OpenAI Chat Completions",
+        note: "所有文本模型同时支持 OpenAI 和 Anthropic 格式；平台通过 URI path 选择协议适配器。",
+        request: {
+          model: "gpt-6-astra",
+          messages: [
+            { role: "system", content: "You are a concise assistant." },
+            { role: "user", content: "用一句话解释统一 AI API 网关。" }
+          ],
+          temperature: 0.2,
+          stream: false
+        },
+        response: {
+          id: "chatcmpl_demo_001",
+          object: "chat.completion",
+          model: "gpt-6-astra",
+          choices: [
+            { index: 0, message: { role: "assistant", content: "统一 AI API 网关负责屏蔽多渠道差异，并提供路由、监控和成本治理。" }, finish_reason: "stop" }
+          ],
+          usage: { prompt_tokens: 38, completion_tokens: 29, total_tokens: 67 }
+        }
+      },
+      {
+        id: "openai_responses",
+        category: "text",
+        label: "OpenAI Responses",
+        endpoint: "/v1/responses",
+        protocol: "OpenAI Responses",
+        note: "文本模型走 /v1/responses 时按 OpenAI Responses 入参处理，再进入统一文本模型路由池。",
+        request: {
+          model: "gpt-6.1-sol",
+          input: [
+            {
+              role: "user",
+              content: [
+                { type: "input_text", text: "把 gpt-6-astra 的渠道 fallback 逻辑总结成三点。" }
+              ]
+            }
+          ],
+          reasoning: { effort: "low" },
+          temperature: 0.2
+        },
+        response: {
+          id: "resp_demo_001",
+          object: "response",
+          model: "gpt-6.1-sol",
+          output: [
+            {
+              type: "message",
+              role: "assistant",
+              content: [
+                { type: "output_text", text: "按配置顺序探测渠道；异常时跳过不可用渠道；记录切换原因用于监控和成本复盘。" }
+              ]
+            }
+          ],
+          usage: { input_tokens: 34, output_tokens: 32, total_tokens: 66 }
+        }
+      },
+      {
+        id: "anthropic_messages",
+        category: "text",
+        label: "Anthropic Messages",
+        endpoint: "/v1/messages",
+        protocol: "Anthropic Messages",
+        note: "同一个文本模型走 /v1/messages 时接收 Anthropic Messages 入参，内部转换后路由到可用渠道。",
+        request: {
+          model: "gpt-6-astra",
+          max_tokens: 512,
+          messages: [
+            { role: "user", content: [{ type: "text", text: "生成一个渠道健康告警标题。" }] }
+          ]
+        },
+        response: {
+          id: "msg_demo_001",
+          type: "message",
+          role: "assistant",
+          model: "gpt-6-astra",
+          content: [{ type: "text", text: "aws map账号错误率突增，已触发自动 fallback" }],
+          stop_reason: "end_turn",
+          usage: { input_tokens: 21, output_tokens: 18 }
+        }
+      },
+      {
+        id: "jev_judgement",
+        category: "judgement",
+        label: "Jev Schema",
+        endpoint: "/jev/v1/judgements",
+        protocol: "Jev Schema",
+        note: "所有判断模型支持 Jev schema；schema 用于声明判断维度、阈值和结构化返回。",
+        request: {
+          model: "judge-risk-v1",
+          input: {
+            text: "用户在 5 分钟内重复请求 800 次视频生成。"
+          },
+          schema: {
+            type: "object",
+            properties: {
+              risk_level: { type: "string", enum: ["low", "medium", "high"] },
+              reason: { type: "string" },
+              action: { type: "string", enum: ["allow", "rate_limit", "block"] }
+            },
+            required: ["risk_level", "reason", "action"]
+          }
+        },
+        response: {
+          id: "jev_judge_001",
+          model: "judge-risk-v1",
+          output: {
+            risk_level: "high",
+            reason: "短时间高频视频任务会导致费用异常增长。",
+            action: "rate_limit"
+          },
+          schema_valid: true
+        }
+      },
+      {
+        id: "gpt_image",
+        category: "image",
+        label: "gpt-image 返回格式",
+        endpoint: "/v1/images/generations",
+        protocol: "gpt-image",
+        note: "所有图片模型统一返回 gpt-image 兼容格式，方便业务只处理一种图片响应结构。",
+        request: {
+          model: "image-pro",
+          prompt: "A clean dashboard showing AI model routing, professional UI",
+          size: "1024x1024",
+          n: 1
+        },
+        response: {
+          created: 1791511200,
+          data: [
+            {
+              revised_prompt: "A professional dashboard for AI API model routing.",
+              url: "https://assets.internal/demo/image-pro-001.png"
+            }
+          ],
+          usage: { images: 1 }
+        }
+      },
+      {
+        id: "seedance20",
+        category: "video",
+        label: "seedance2.0",
+        endpoint: "/v1/videos/seedance2.0",
+        protocol: "seedance2.0",
+        note: "视频模型可按 seedance2.0 规范提交任务，平台负责转发、轮询和响应包装。",
+        request: {
+          model: "video-hd",
+          prompt: "A product analytics dashboard animating into view",
+          duration: 5,
+          resolution: "1080p",
+          aspect_ratio: "16:9"
+        },
+        response: {
+          task_id: "sd20_task_001",
+          status: "submitted",
+          polling_url: "/v1/videos/tasks/sd20_task_001"
+        }
+      },
+      {
+        id: "seedance25",
+        category: "video",
+        label: "seedance2.5",
+        endpoint: "/v1/videos/seedance2.5",
+        protocol: "seedance2.5",
+        note: "seedance2.5 规范支持更细的镜头、运动和参考图控制。",
+        request: {
+          model: "video-hd",
+          input: {
+            prompt: "A calm launch sequence for an internal AI gateway",
+            reference_images: ["https://assets.internal/reference/dashboard.png"]
+          },
+          generation_config: {
+            duration: 8,
+            fps: 24,
+            resolution: "1080p",
+            camera_motion: "slow_push_in"
+          }
+        },
+        response: {
+          id: "sd25_task_001",
+          object: "video.generation.task",
+          status: "queued",
+          eta_seconds: 42
+        }
+      },
+      {
+        id: "minimax_h3",
+        category: "video",
+        label: "minimax h3",
+        endpoint: "/v1/videos/minimax-h3",
+        protocol: "minimax h3",
+        note: "minimax h3 path 使用 minimax h3 入参/出参规范，仍由同一视频模型路由池承接。",
+        request: {
+          model: "video-hd",
+          subject_reference: "https://assets.internal/reference/app-screen.png",
+          prompt: "Show the screen transforming into a monitoring dashboard",
+          duration_seconds: 6,
+          output_format: "mp4"
+        },
+        response: {
+          task_id: "mmh3_task_001",
+          state: "processing",
+          video: null,
+          metadata: { estimated_wait_seconds: 55 }
+        }
+      }
+    ];
+
+    function $(selector) {
+      return document.querySelector(selector);
+    }
+
+    function $all(selector) {
+      return Array.from(document.querySelectorAll(selector));
+    }
+
+    function channelById(id) {
+      return state.channels.find(channel => channel.id === id);
+    }
+
+    function modelById(id) {
+      return state.models.find(model => model.id === id);
+    }
+
+    function customerById(id) {
+      return state.customers.find(customer => customer.id === id);
+    }
+
+    function inputAbilitiesOf(item) {
+      return item.inputAbilities || (item.ability ? [item.ability] : []);
+    }
+
+    function outputAbilitiesOf(item) {
+      return item.outputAbilities || (item.ability ? [item.ability] : []);
+    }
+
+    function abilityText(values) {
+      return values.map(value => abilityLabel[value] || value).join("、") || "未配置";
+    }
+
+    function abilityLine(item) {
+      return `入：${abilityText(inputAbilitiesOf(item))}<br>出：${abilityText(outputAbilitiesOf(item))}`;
+    }
+
+    function hasIntersection(left, right) {
+      return left.some(value => right.includes(value));
+    }
+
+    function supportsRoute(model, channel) {
+      return hasIntersection(inputAbilitiesOf(model), inputAbilitiesOf(channel))
+        && hasIntersection(outputAbilitiesOf(model), outputAbilitiesOf(channel));
+    }
+
+    function modelsOf(channel) {
+      return channel.models || [];
+    }
+
+    function channelSupportsModel(model, channel) {
+      return modelsOf(channel).includes(model.name);
+    }
+
+    function renderAbilityOptions(containerSelector, name, options, selectedValues) {
+      const selected = new Set(selectedValues);
+      $(containerSelector).innerHTML = `
+        <div class="ability-options">
+          ${options.map(value => `
+            <label class="ability-check">
+              <input type="checkbox" name="${name}" value="${value}" ${selected.has(value) ? "checked" : ""}>
+              <span>${abilityLabel[value]}</span>
+            </label>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function selectedAbilities(name) {
+      return $all(`input[name="${name}"]:checked`).map(input => input.value);
+    }
+
+    function selectedAbilitiesWithDefault(name, fallback) {
+      const values = selectedAbilities(name);
+      return values.length ? values : fallback;
+    }
+
+    function weightTotal(routes) {
+      return routes.reduce((sum, route) => sum + Number(route.weight || 0), 0);
+    }
+
+    function modelRoutes(model) {
+      return model.channels
+        .map(route => ({ ...route, channel: channelById(route.channelId) }))
+        .filter(route => route.channel && route.weight > 0);
+    }
+
+    function weightedDiscount(model, routes = modelRoutes(model)) {
+      const total = weightTotal(routes);
+      if (!total) return 0;
+      return routes.reduce((sum, route) => sum + route.channel.discount * route.weight / total, 0);
+    }
+
+    function weightedLatency(routes) {
+      const total = weightTotal(routes);
+      if (!total) return 0;
+      return Math.round(routes.reduce((sum, route) => sum + route.channel.latency * route.weight / total, 0));
+    }
+
+    function discountText(decimal) {
+      if (!decimal) return "0折";
+      return `${(decimal * 10).toFixed(2).replace(/\.?0+$/, "")}折`;
+    }
+
+    function ratioText(decimal) {
+      return `${decimal.toFixed(3).replace(/\.?0+$/, "")}x`;
+    }
+
+    function qualityBadge(score) {
+      if (score >= 94) return `<span class="badge green">${score}</span>`;
+      if (score >= 88) return `<span class="badge amber">${score}</span>`;
+      return `<span class="badge red">${score}</span>`;
+    }
+
+    function statusBadge(status) {
+      const color = status === "healthy" ? "green" : status === "degraded" ? "amber" : "red";
+      return `<span class="badge ${color}"><span class="status-dot ${color}"></span>${statusLabel[status]}</span>`;
+    }
+
+    let usageChart = null;
+    const usageColors = ["#247a76", "#3b638e", "#9a6b13", "#6b5a8e", "#b84242"];
+
+    function formatUsage(value) {
+      return `${Number(value || 0).toLocaleString("zh-CN")} 万`;
+    }
+
+    function usageRows() {
+      const rows = state.models.map(model => {
+        const values = state.usageSeries[model.id] || [];
+        const total = values.reduce((sum, value) => sum + value, 0);
+        const peak = values.length ? Math.max(...values) : 0;
+        const last = values[values.length - 1] || 0;
+        const first = values[0] || 0;
+        return { model, values, total, peak, trend: last - first };
+      }).sort((left, right) => right.total - left.total);
+      const grandTotal = rows.reduce((sum, row) => sum + row.total, 0);
+      return rows.map(row => ({
+        ...row,
+        share: grandTotal ? row.total / grandTotal : 0
+      }));
+    }
+
+    function renderUsageRanking() {
+      const rows = usageRows();
+      const grandTotal = rows.reduce((sum, row) => sum + row.total, 0);
+      const top = rows[0];
+      const dayTotals = state.usageDates.map((date, index) => ({
+        date,
+        total: state.models.reduce((sum, model) => sum + ((state.usageSeries[model.id] || [])[index] || 0), 0)
+      }));
+      const peakDay = dayTotals.reduce((best, item) => item.total > best.total ? item : best, { date: "--", total: 0 });
+      $("#usageTotal").textContent = formatUsage(grandTotal);
+      $("#usageTopModel").textContent = top ? top.model.name : "--";
+      $("#usagePeakDay").textContent = `${peakDay.date} / ${formatUsage(peakDay.total)}`;
+      $("#usageRankingTable").innerHTML = rows.map((row, index) => `
+        <tr>
+          <td>
+            <div class="ranking-name">
+              <span class="rank-dot" style="background:${usageColors[index % usageColors.length]}"></span>
+              <strong>${row.model.name}</strong>
+            </div>
+          </td>
+          <td>${formatUsage(row.total)}</td>
+          <td>${(row.share * 100).toFixed(1)}%</td>
+          <td>${formatUsage(row.peak)}</td>
+        </tr>
+      `).join("");
+      renderUsageChart();
+    }
+
+    function renderUsageChart() {
+      const node = $("#usageStackedAreaChart");
+      if (!node || state.activeView !== "ranking") return;
+      if (typeof echarts === "undefined") {
+        node.innerHTML = `<div class="empty">ECharts 未加载，无法渲染堆叠面积图。</div>`;
+        return;
+      }
+      node.innerHTML = "";
+      if (!usageChart) {
+        usageChart = echarts.init(node);
+      }
+      usageChart.setOption({
+        color: usageColors,
+        tooltip: {
+          trigger: "axis",
+          valueFormatter: value => formatUsage(value)
+        },
+        legend: {
+          type: "scroll",
+          top: 0,
+          itemWidth: 10,
+          itemHeight: 10,
+          textStyle: { color: "#556065" }
+        },
+        grid: {
+          left: 52,
+          right: 22,
+          top: 50,
+          bottom: 36
+        },
+        xAxis: {
+          type: "category",
+          boundaryGap: false,
+          data: state.usageDates,
+          axisLine: { lineStyle: { color: "#bdc9ce" } },
+          axisLabel: { color: "#687377" }
+        },
+        yAxis: {
+          type: "value",
+          name: "消耗量",
+          nameTextStyle: { color: "#687377" },
+          axisLabel: {
+            color: "#687377",
+            formatter: value => `${value}万`
+          },
+          splitLine: { lineStyle: { color: "#e4e9eb" } }
+        },
+        series: state.models.map(model => ({
+          name: model.name,
+          type: "line",
+          stack: "usage",
+          smooth: true,
+          symbolSize: 5,
+          emphasis: { focus: "series" },
+          areaStyle: { opacity: 0.22 },
+          lineStyle: { width: 2 },
+          data: state.usageSeries[model.id] || []
+        }))
+      }, true);
+      requestAnimationFrame(() => usageChart.resize());
+    }
+
+    function playgroundScenarioById(id) {
+      return playgroundScenarios.find(item => item.id === id) || playgroundScenarios[0];
+    }
+
+    function playgroundScenariosByTab(tabId) {
+      return playgroundScenarios.filter(item => item.category === tabId);
+    }
+
+    function currentPlaygroundScenario() {
+      const activeTab = playgroundTabs.some(tab => tab.id === state.selectedPlaygroundTab)
+        ? state.selectedPlaygroundTab
+        : playgroundTabs[0].id;
+      state.selectedPlaygroundTab = activeTab;
+      const scenarios = playgroundScenariosByTab(activeTab);
+      const selectedId = state.selectedPlaygroundScenarioByTab[activeTab] || state.selectedPlaygroundScenario;
+      const scenario = scenarios.find(item => item.id === selectedId) || scenarios[0] || playgroundScenarios[0];
+      state.selectedPlaygroundScenario = scenario.id;
+      state.selectedPlaygroundScenarioByTab[activeTab] = scenario.id;
+      return scenario;
+    }
+
+    function prettyJson(value) {
+      return JSON.stringify(value, null, 2);
+    }
+
+    function buildCurlCode(scenario) {
+      return `curl https://api.internal-ai.example${scenario.endpoint} \\
+  -H "Authorization: Bearer $INTERNAL_AI_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '${prettyJson(scenario.request)}'`;
+    }
+
+    function buildJsCode(scenario) {
+      return `const response = await fetch("https://api.internal-ai.example${scenario.endpoint}", {
+  method: "POST",
+  headers: {
+    "Authorization": \`Bearer \${process.env.INTERNAL_AI_API_KEY}\`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(${prettyJson(scenario.request).replace(/\n/g, "\n  ")})
+});
+
+const result = await response.json();
+console.log(result);`;
+    }
+
+    function renderPlayground() {
+      const tabContainer = $("#playgroundTabs");
+      if (!tabContainer) return;
+      tabContainer.innerHTML = playgroundTabs.map(tab => `
+        <button class="${tab.id === state.selectedPlaygroundTab ? "active" : ""}" type="button" role="tab" aria-selected="${tab.id === state.selectedPlaygroundTab}" data-playground-tab="${tab.id}">${tab.label}</button>
+      `).join("");
+      const scenario = currentPlaygroundScenario();
+      const scenarios = playgroundScenariosByTab(state.selectedPlaygroundTab);
+      $("#playgroundProtocolOptions").innerHTML = scenarios.map(item => `
+        <button class="protocol-option ${item.id === scenario.id ? "active" : ""}" type="button" data-playground-scenario="${item.id}" aria-pressed="${item.id === scenario.id}">
+          <strong>${item.label}</strong>
+          <small>${item.endpoint}</small>
+        </button>
+      `).join("");
+      $("#playgroundEndpoint").textContent = scenario.endpoint;
+      $("#playgroundProtocolText").textContent = `${scenario.protocol} / 由 URI path 决定协议适配器`;
+      $("#playgroundCompatNote").innerHTML = `<strong>兼容层说明</strong><br>${scenario.note}`;
+      $("#playgroundCurlLabel").textContent = scenario.protocol;
+      $("#playgroundRequestLabel").textContent = scenario.endpoint;
+      $("#playgroundResponseLabel").textContent = scenario.protocol;
+      $("#playgroundCurlCode").textContent = buildCurlCode(scenario);
+      $("#playgroundJsCode").textContent = buildJsCode(scenario);
+      $("#playgroundRequestCode").textContent = prettyJson(scenario.request);
+      $("#playgroundResponseCode").textContent = prettyJson(scenario.response);
+      $("#pathRuleList").innerHTML = pathRules.filter(rule => rule.category === state.selectedPlaygroundTab).map(rule => `
+        <div class="path-rule">
+          <strong><code>${rule.path}</code> → ${rule.protocol}</strong>
+          <span>${rule.note}</span>
+        </div>
+      `).join("");
+    }
+
+    function healthBadge(status) {
+      const map = {
+        healthy: ["green", "可用"],
+        lagging: ["amber", "延迟卡顿"],
+        down: ["red", "不可调用"],
+        offline: ["gray", "已下线"]
+      };
+      const [color, text] = map[status] || ["gray", status];
+      return `<span class="badge ${color}">${text}</span>`;
+    }
+
+    function severityBadge(severity) {
+      const map = {
+        normal: ["green", "正常"],
+        warn: ["amber", "预警"],
+        critical: ["red", "费用激增"]
+      };
+      const [color, text] = map[severity] || ["gray", severity];
+      return `<span class="badge ${color}">${text}</span>`;
+    }
+
+    function renderMonitorDashboard() {
+      const health = state.modelHealth;
+      const online = health.filter(item => item.status === "healthy").length;
+      const lagging = health.filter(item => item.status === "lagging").length;
+      const down = health.filter(item => item.status === "down").length;
+      const offline = health.filter(item => item.status === "offline").length;
+      $("#monitorOnlineModels").textContent = online;
+      $("#monitorLaggingModels").textContent = lagging;
+      $("#monitorDownModels").textContent = down;
+      $("#monitorOfflineModels").textContent = offline;
+      $("#modelHealthGrid").innerHTML = health.map(item => {
+        const model = modelById(item.modelId);
+        return `
+          <div class="health-row">
+            <div>
+              <strong>${model ? model.name : item.modelId}</strong>
+              <small>${item.event}</small>
+            </div>
+            <div>${healthBadge(item.status)}</div>
+            <div>
+              <strong>${item.p95 ? `${item.p95}ms` : "--"}</strong>
+              <small>P95 延迟</small>
+            </div>
+            <div>
+              <strong>${item.errorRate}%</strong>
+              <small>错误率</small>
+            </div>
+            <div>
+              <strong>${item.channel}</strong>
+              <small>${item.updatedAt} 更新</small>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      const totalCalls = state.channelUsage.reduce((sum, item) => sum + item.calls, 0);
+      const totalCost = state.channelUsage.reduce((sum, item) => sum + item.cost, 0);
+      const abnormal = state.channelUsage.filter(item => item.severity !== "normal").length;
+      $("#monitorCalls").textContent = totalCalls.toLocaleString("zh-CN");
+      $("#monitorCost").textContent = `¥${totalCost.toLocaleString("zh-CN")}`;
+      $("#monitorAlerts").textContent = abnormal;
+      $("#costBroadcastList").innerHTML = state.channelUsage
+        .slice()
+        .sort((left, right) => {
+          const order = { critical: 0, warn: 1, normal: 2 };
+          return order[left.severity] - order[right.severity] || right.growth - left.growth;
+        })
+        .map(item => {
+          const channel = channelById(item.channelId);
+          return `
+            <div class="broadcast-row ${item.severity === "critical" ? "critical" : item.severity === "warn" ? "warn" : ""}">
+              <div>
+                <strong>${channel ? channel.name : item.channelId}</strong>
+                <small>${item.message}</small>
+                <div class="broadcast-meta">
+                  <span class="badge blue">调用 ${item.calls.toLocaleString("zh-CN")}</span>
+                  <span class="badge purple">费用 ¥${item.cost.toLocaleString("zh-CN")}</span>
+                  <span class="badge ${item.growth >= 80 ? "red" : item.growth >= 40 ? "amber" : "green"}">环比 +${item.growth}%</span>
+                </div>
+              </div>
+              <div>${severityBadge(item.severity)}</div>
+            </div>
+          `;
+        }).join("");
+
+      const pricingRows = state.pricingMonitor.map(item => {
+        const delta = item.baselinePerK ? (item.currentPerK - item.baselinePerK) / item.baselinePerK : 0;
+        return { ...item, delta };
+      });
+      const pricingWarnings = pricingRows.filter(item => item.delta >= 0.3).length;
+      const maxDelta = pricingRows.reduce((max, item) => Math.max(max, item.delta), 0);
+      const avgCoverage = pricingRows.reduce((sum, item) => sum + item.coverage, 0) / pricingRows.length;
+      $("#pricingCoverage").textContent = `${avgCoverage.toFixed(1)}%`;
+      $("#pricingWarnings").textContent = pricingWarnings;
+      $("#pricingMaxDelta").textContent = `+${Math.round(maxDelta * 100)}%`;
+      $("#pricingMonitorList").innerHTML = pricingRows
+        .slice()
+        .sort((left, right) => right.delta - left.delta)
+        .map(item => {
+          const channel = channelById(item.channelId);
+          const model = modelById(item.modelId);
+          const severity = item.delta >= 0.5 ? "critical" : item.delta >= 0.3 ? "warn" : "";
+          return `
+            <div class="pricing-row ${severity}">
+              <div>
+                <strong>${channel ? channel.name : item.channelId}</strong>
+                <small>${model ? model.name : item.modelId} / 同 ${item.sampleTokens.toLocaleString("zh-CN")} token 口径</small>
+              </div>
+              <div>
+                <strong>¥${item.baselinePerK.toFixed(3)}</strong>
+                <small>基线 / 千 token</small>
+              </div>
+              <div>
+                <strong>¥${item.currentPerK.toFixed(3)}</strong>
+                <small>当前 / 千 token</small>
+              </div>
+              <div>
+                <strong>+${Math.round(item.delta * 100)}%</strong>
+                <small>单位费用波动</small>
+              </div>
+              <div>${severityBadge(item.delta >= 0.5 ? "critical" : item.delta >= 0.3 ? "warn" : "normal")}</div>
+            </div>
+          `;
+        }).join("");
+
+      $("#billingTraceTable").innerHTML = state.billingTraces.map(item => {
+        const channel = channelById(item.channelId);
+        const model = modelById(item.modelId);
+        return `
+          <tr>
+            <td>
+              <div class="model-name">
+                <strong>${item.requestId}</strong>
+                <span>${item.time} / ${model ? model.name : item.modelId}</span>
+              </div>
+            </td>
+            <td>${channel ? channel.name : item.channelId}</td>
+            <td>${item.tokens.toLocaleString("zh-CN")}</td>
+            <td>${item.returned ? `¥${item.charged.toFixed(3)}` : "--"}</td>
+            <td>${item.returned ? `<span class="badge green">已返回扣费值</span>` : `<span class="badge red">缺少扣费值</span>`}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function toast(title, body) {
+      const node = $("#toast");
+      node.innerHTML = `<strong>${title}</strong>${body}`;
+      node.classList.add("show");
+      window.clearTimeout(toast.timer);
+      toast.timer = window.setTimeout(() => node.classList.remove("show"), 2600);
+    }
+
+    function renderNav() {
+      $("#nav").innerHTML = navItems.map(item => `
+        <button type="button" data-view="${item.id}" class="${state.activeView === item.id ? "active" : ""}">
+          <span class="icon">${item.icon}</span>
+          <span>${item.label}</span>
+          <span class="count">${item.count}</span>
+        </button>
+      `).join("");
+    }
+
+    function switchView(viewId) {
+      state.activeView = viewId;
+      $all(".view").forEach(view => view.classList.toggle("active", view.id === `view-${viewId}`));
+      $all("#nav button").forEach(button => button.classList.toggle("active", button.dataset.view === viewId));
+      const view = $(`#view-${viewId}`);
+      $("#pageTitle").textContent = view.dataset.title;
+      $("#pageKicker").textContent = view.dataset.kicker;
+      document.body.classList.remove("menu-open");
+      renderAll();
+    }
+
+    function renderMetrics() {
+      const mappingCount = state.models.reduce((sum, model) => sum + model.channels.filter(route => route.weight > 0).length, 0);
+      const healthy = state.channels.filter(channel => channel.status === "healthy").length;
+      const degraded = state.channels.filter(channel => channel.status === "degraded").length;
+      const tested = state.models.filter(model => model.lastTest && model.lastTest.startsWith("2026-10")).length;
+      const baseModel = modelById(state.selectedModelId) || state.models[0];
+      $("#metricModels").textContent = state.models.length;
+      $("#metricMapped").textContent = `${mappingCount} 个已配置渠道映射`;
+      $("#metricChannels").textContent = state.channels.length;
+      $("#metricHealthy").textContent = `${healthy} 个健康，${degraded} 个降级`;
+      $("#metricCoverage").textContent = `${Math.round(tested / state.models.length * 100)}%`;
+      $("#metricCost").textContent = discountText(weightedDiscount(baseModel));
+      $("#metricCostModel").textContent = `${baseModel.name} 的默认负载`;
+    }
+
+    function renderModelTable() {
+      const keyword = $("#globalSearch").value.trim().toLowerCase();
+      const rows = state.models
+        .filter(model => !keyword || model.name.toLowerCase().includes(keyword) || model.desc.toLowerCase().includes(keyword))
+        .map(model => {
+          const routes = modelRoutes(model);
+          const weight = routes.map(route => `${route.channel.name} ${route.weight}`).join(" / ") || "未配置";
+          return `
+            <tr class="${state.selectedModelId === model.id ? "selected" : ""}">
+              <td>
+                <div class="model-name">
+                  <strong>${model.name}</strong>
+                  <span>${model.desc}</span>
+                </div>
+              </td>
+              <td>${abilityLine(model)}</td>
+              <td>${routes.length}</td>
+              <td>${weight}</td>
+              <td>${discountText(weightedDiscount(model))}</td>
+              <td>${qualityBadge(model.quality)}</td>
+              <td>
+                <div class="toolbar">
+                  <button class="btn small" type="button" data-edit-model="${model.id}">编辑</button>
+                  <button class="btn small" type="button" data-test-model="${model.id}">▷</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join("");
+      $("#modelTable").innerHTML = rows || `<tr><td colspan="7"><div class="empty">没有匹配的模型</div></td></tr>`;
+    }
+
+    function renderMappingEditor() {
+      const model = modelById(state.selectedModelId) || state.models[0];
+      if (!model) return;
+      state.selectedModelId = model.id;
+      $("#mappingSub").textContent = `${model.name} 的模型渠道映射`;
+      $("#modelNameInput").value = model.name;
+      renderAbilityOptions("#modelInputAbilities", "model-input-ability", inputAbilityOptions, inputAbilitiesOf(model));
+      renderAbilityOptions("#modelOutputAbilities", "model-output-ability", outputAbilityOptions, outputAbilitiesOf(model));
+      renderChannelChecks(model);
+      $("#mappingCostText").textContent = buildCostSentence(model);
+    }
+
+    function openMappingModal(modelId) {
+      if (modelId) state.selectedModelId = modelId;
+      renderMappingEditor();
+      const modal = $("#mappingModal");
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+      refreshModalLock();
+      window.setTimeout(() => $("#modelNameInput").focus(), 0);
+    }
+
+    function closeMappingModal() {
+      const modal = $("#mappingModal");
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      refreshModalLock();
+    }
+
+    function refreshModalLock() {
+      const hasOpenModal = $all(".modal-backdrop.open").length > 0;
+      document.body.classList.toggle("modal-open", hasOpenModal);
+    }
+
+    function renderChannelChecks(model) {
+      const modelRouteMap = new Map(model.channels.map(route => [route.channelId, route.weight]));
+      const selectedChannelIds = model.channels.map(route => route.channelId);
+      const draftModel = {
+        ...model,
+        name: $("#modelNameInput").value.trim() || model.name,
+        inputAbilities: selectedAbilities("model-input-ability").length ? selectedAbilities("model-input-ability") : inputAbilitiesOf(model),
+        outputAbilities: selectedAbilities("model-output-ability").length ? selectedAbilities("model-output-ability") : outputAbilitiesOf(model)
+      };
+      const matchingChannels = state.channels.filter(channel => supportsRoute(draftModel, channel) && channelSupportsModel(draftModel, channel));
+      const orderedChannels = [
+        ...selectedChannelIds.map(id => matchingChannels.find(channel => channel.id === id)).filter(Boolean),
+        ...matchingChannels.filter(channel => !selectedChannelIds.includes(channel.id))
+      ];
+      $("#channelChecks").innerHTML = orderedChannels.map(channel => {
+        const checked = modelRouteMap.has(channel.id);
+        const weight = checked ? modelRouteMap.get(channel.id) : 0;
+        return `
+          <div class="check-row fallback-row" draggable="true" data-map-row="${channel.id}">
+            <input type="checkbox" data-map-channel="${channel.id}" ${checked ? "checked" : ""}>
+            <span class="channel-mini">
+              <strong>${channel.name} <span data-fallback-index="${channel.id}"></span></strong>
+              <span>${channel.protocol} / models ${modelsOf(channel).length} / ${abilityText(inputAbilitiesOf(channel))} → ${abilityText(outputAbilitiesOf(channel))} / ${discountText(channel.discount)} / P95 ${channel.latency}ms</span>
+            </span>
+            <input type="number" min="0" step="10" value="${weight}" data-map-weight="${channel.id}">
+          </div>
+        `;
+      }).join("") || `<div class="empty">没有在标准 models 字段中声明支持当前模型的渠道</div>`;
+      refreshFallbackOrderLabels();
+    }
+
+    function refreshFallbackOrderLabels() {
+      let index = 1;
+      $all("[data-map-row]").forEach(row => {
+        const channelId = row.dataset.mapRow;
+        const label = $(`[data-fallback-index="${channelId}"]`);
+        const checked = row.querySelector("[data-map-channel]")?.checked;
+        if (!label) return;
+        label.textContent = checked ? `/ fallback #${index++}` : "/ 候选";
+      });
+    }
+
+    function buildCostSentence(model) {
+      const routes = modelRoutes(model);
+      if (!routes.length) return "当前没有可用渠道，无法估算成本价。";
+      const total = weightTotal(routes);
+      const parts = routes.map(route => {
+        const share = route.weight / total;
+        return `${discountText(route.channel.discount)} * ${(share * 100).toFixed(1)}%`;
+      });
+      return `${model.name}: ${parts.join(" + ")} = ${discountText(weightedDiscount(model))}。`;
+    }
+
+    function saveMapping() {
+      const model = modelById(state.selectedModelId);
+      if (!model) return;
+      model.name = $("#modelNameInput").value.trim() || model.name;
+      model.inputAbilities = selectedAbilitiesWithDefault("model-input-ability", ["text"]);
+      model.outputAbilities = selectedAbilitiesWithDefault("model-output-ability", ["text"]);
+      model.channels = $all("[data-map-channel]").map(check => {
+        const channelId = check.dataset.mapChannel;
+        const weightInput = $(`[data-map-weight="${channelId}"]`);
+        return check.checked ? { channelId, weight: Number(weightInput.value || 0) } : null;
+      }).filter(Boolean);
+      toast("已保存模型映射", `${model.name} 当前有 ${model.channels.length} 个可用渠道。`);
+      closeMappingModal();
+      renderAll();
+    }
+
+    function addModel() {
+      const id = `model-${Date.now()}`;
+      const model = {
+        id,
+        name: `new-model-${state.models.length + 1}`,
+        inputAbilities: ["text"],
+        outputAbilities: ["text"],
+        desc: "新增保障模型",
+        channels: [{ channelId: "github-proxy", weight: 100 }],
+        quality: 0,
+        lastTest: ""
+      };
+      state.models.unshift(model);
+      state.selectedModelId = id;
+      switchView("models");
+      openMappingModal(id);
+      toast("已新增模型", "请确认 name、输入/输出能力和可用渠道，然后运行自动测试。");
+    }
+
+    function renderChannelTable() {
+      const keyword = $("#globalSearch").value.trim().toLowerCase();
+      const rows = state.channels
+        .filter(channel => !keyword || channel.name.toLowerCase().includes(keyword) || channel.protocol.toLowerCase().includes(keyword))
+        .map(channel => `
+          <tr>
+            <td>
+              <button class="btn small" type="button" data-edit-channel="${channel.id}">编辑</button>
+              <span class="nowrap">${channel.name}</span>
+            </td>
+            <td>${abilityLine(channel)}</td>
+            <td>${modelsOf(channel).length} 个<br><span style="color:var(--muted);font-size:12px;">${channel.lastModelsSync || "--"} 同步</span></td>
+            <td>${channel.protocol}</td>
+            <td>${discountText(channel.discount)}</td>
+            <td>${channel.latency}ms</td>
+            <td>${statusBadge(channel.status)}</td>
+            <td>每月 ${channel.monthlyDay} 日</td>
+          </tr>
+        `).join("");
+      $("#channelTable").innerHTML = rows || `<tr><td colspan="8"><div class="empty">没有匹配的渠道</div></td></tr>`;
+    }
+
+    function renderChannelEditor() {
+      const channel = channelById(state.selectedChannelId) || state.channels[0];
+      if (!channel) return;
+      state.selectedChannelId = channel.id;
+      $("#channelEditorSub").textContent = channel.name;
+      $("#channelNameInput").value = channel.name;
+      $("#channelProtocolInput").value = channel.protocol;
+      renderAbilityOptions("#channelInputAbilities", "channel-input-ability", inputAbilityOptions, inputAbilitiesOf(channel));
+      renderAbilityOptions("#channelOutputAbilities", "channel-output-ability", outputAbilityOptions, outputAbilitiesOf(channel));
+      $("#channelDiscountInput").value = channel.discount;
+      $("#channelLatencyInput").value = channel.latency;
+      $("#channelSuccessInput").value = channel.success;
+      $("#monthlyDayInput").value = channel.monthlyDay;
+      $("#channelStatusInput").value = channel.status;
+      renderChannelModelsList(channel);
+      $("#channelResult").innerHTML = `<strong>${channel.name}</strong> 当前 ${statusLabel[channel.status]}，成功率 ${channel.success}%，月度测试安排在每月 ${channel.monthlyDay} 日。`;
+    }
+
+    function renderChannelModelsList(channel) {
+      $("#channelModelsList").innerHTML = modelsOf(channel).map(modelName => `<span class="badge blue">${modelName}</span>`).join("")
+        || `<span class="badge gray">models 字段为空</span>`;
+    }
+
+    function syncChannelModels() {
+      const channel = channelById(state.selectedChannelId);
+      if (!channel) return;
+      channel.lastModelsSync = "刚刚";
+      renderChannelModelsList(channel);
+      toast("models 字段已同步", `${channel.name} 返回 ${modelsOf(channel).length} 个模型。`);
+      renderAll();
+      openChannelModal(channel.id);
+    }
+
+    function handleFallbackDragStart(event) {
+      const row = event.target.closest("[data-map-row]");
+      if (!row) return;
+      row.classList.add("dragging");
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", row.dataset.mapRow);
+    }
+
+    function handleFallbackDragOver(event) {
+      const target = event.target.closest("[data-map-row]");
+      const dragging = document.querySelector(".fallback-row.dragging");
+      if (!target || !dragging || target === dragging) return;
+      event.preventDefault();
+      const rect = target.getBoundingClientRect();
+      const insertAfter = event.clientY > rect.top + rect.height / 2;
+      target.parentNode.insertBefore(dragging, insertAfter ? target.nextSibling : target);
+      refreshFallbackOrderLabels();
+    }
+
+    function handleFallbackDragEnd() {
+      $all(".fallback-row.dragging").forEach(row => row.classList.remove("dragging"));
+      refreshFallbackOrderLabels();
+    }
+
+    function openChannelModal(channelId) {
+      if (channelId) state.selectedChannelId = channelId;
+      renderChannelEditor();
+      const modal = $("#channelModal");
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+      refreshModalLock();
+      window.setTimeout(() => $("#channelNameInput").focus(), 0);
+    }
+
+    function closeChannelModal() {
+      const modal = $("#channelModal");
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      refreshModalLock();
+    }
+
+    function saveChannel() {
+      const channel = channelById(state.selectedChannelId);
+      if (!channel) return;
+      channel.name = $("#channelNameInput").value.trim() || channel.name;
+      channel.protocol = $("#channelProtocolInput").value;
+      channel.inputAbilities = selectedAbilitiesWithDefault("channel-input-ability", ["text"]);
+      channel.outputAbilities = selectedAbilitiesWithDefault("channel-output-ability", ["text"]);
+      channel.discount = Number($("#channelDiscountInput").value || channel.discount);
+      channel.latency = Number($("#channelLatencyInput").value || channel.latency);
+      channel.success = Number($("#channelSuccessInput").value || channel.success);
+      channel.monthlyDay = Number($("#monthlyDayInput").value || channel.monthlyDay);
+      channel.status = $("#channelStatusInput").value;
+      toast("已保存渠道配置", `${channel.name} 已更新，相关模型成本会重新估算。`);
+      closeChannelModal();
+      renderAll();
+    }
+
+    function addChannel() {
+      const id = `channel-${Date.now()}`;
+      const channel = {
+        id,
+        name: `新增渠道 ${state.channels.length + 1}`,
+        inputAbilities: ["text"],
+        outputAbilities: ["text"],
+        models: ["gpt-6-astra"],
+        lastModelsSync: "刚刚",
+        protocol: "OpenAI Responses",
+        discount: 0.66,
+        latency: 1000,
+        success: 95,
+        status: "healthy",
+        monthlyDay: 15
+      };
+      state.channels.unshift(channel);
+      state.selectedChannelId = id;
+      switchView("channels");
+      openChannelModal(id);
+      toast("已新增渠道", "配置折扣、输入/输出能力和月度测试日后，可在模型映射里选用。");
+    }
+
+    function renderTestSelectors() {
+      $("#testModelSelect").innerHTML = state.models.map(model => `<option value="${model.id}">${model.name}</option>`).join("");
+      $("#testModelSelect").value = state.selectedModelId;
+      renderTestChannelOptions();
+    }
+
+    function renderTestChannelOptions() {
+      const model = modelById($("#testModelSelect").value) || state.models[0];
+      const routeChannels = modelRoutes(model).map(route => route.channel);
+      $("#testChannelSelect").innerHTML = routeChannels.map(channel => `<option value="${channel.id}">${channel.name}</option>`).join("");
+      if (routeChannels.length) {
+        $("#testChannelSelect").value = routeChannels[0].id;
+      }
+    }
+
+    function renderTimeline() {
+      $("#probeTimeline").innerHTML = state.tests.map(item => `
+        <div class="timeline-item ${item.type}">
+          <time>${item.time}</time>
+          <div>${item.text}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderMonthlyPlan() {
+      $("#monthlyPlan").innerHTML = state.channels.map(channel => {
+        const coverage = Math.max(62, Math.min(99, Math.round(channel.success)));
+        return `
+          <div class="route-row">
+            <div>
+              <strong>${channel.name}</strong>
+              <small>${channel.protocol} / 每月 ${channel.monthlyDay} 日 / ${statusLabel[channel.status]}</small>
+              <div class="progress" style="margin-top:8px;"><span style="--w:${coverage}%"></span></div>
+            </div>
+            <button class="btn small" type="button" data-monthly-test="${channel.id}">▷</button>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function runProbe(modelId, channelId, source = "自动测试") {
+      const model = modelById(modelId);
+      const channel = channelById(channelId);
+      if (!model || !channel) return;
+      const jitter = Math.round((Math.random() - 0.5) * channel.latency * 0.18);
+      const latency = Math.max(120, channel.latency + jitter);
+      const pass = channel.status !== "unhealthy" && Math.random() * 100 < channel.success;
+      const outputs = outputAbilitiesOf(model);
+      const cost = channel.discount * (outputs.includes("video") ? 4.8 : outputs.includes("image") ? 0.42 : outputs.includes("audio") ? 0.12 : 0.018);
+      model.lastTest = "2026-10-09";
+      model.quality = pass ? Math.min(99, Math.max(88, Math.round((model.quality || 90) + Math.random() * 3))) : Math.max(60, model.quality - 8);
+      channel.status = pass ? (latency > channel.latency * 1.25 ? "degraded" : "healthy") : "degraded";
+      const text = `${model.name} / ${channel.name} ${source}${pass ? "通过" : "失败"}，结构校验${pass ? "通过" : "异常"}，延迟 ${latency}ms。`;
+      state.tests.unshift({
+        time: "10-09 " + new Date().toTimeString().slice(0, 5),
+        type: pass ? "good" : "bad",
+        text
+      });
+      $("#probeSchema").textContent = pass ? "通过" : "失败";
+      $("#probeLatency").textContent = `${latency}ms`;
+      $("#probeCost").textContent = `¥${cost.toFixed(3)}`;
+      toast(pass ? "测试通过" : "测试异常", text);
+      renderAll();
+    }
+
+    function runSelectedProbe() {
+      runProbe($("#testModelSelect").value, $("#testChannelSelect").value);
+    }
+
+    function runModelAutoTest(modelId) {
+      const model = modelById(modelId);
+      const firstRoute = modelRoutes(model)[0];
+      if (!firstRoute) {
+        toast("无法测试", `${model.name} 还没有配置可用渠道。`);
+        return;
+      }
+      runProbe(model.id, firstRoute.channel.id, "新增后自动测试");
+    }
+
+    function runMonthly(channelId) {
+      const channel = channelById(channelId);
+      const model = state.models.find(item => item.channels.some(route => route.channelId === channelId));
+      if (!model) {
+        toast("月度测试跳过", `${channel.name} 暂未被任何模型使用。`);
+        return;
+      }
+      runProbe(model.id, channelId, "月度探针");
+    }
+
+    function runAllMonthly() {
+      state.channels.slice(0, 4).forEach((channel, index) => {
+        window.setTimeout(() => runMonthly(channel.id), index * 160);
+      });
+    }
+
+    function renderCustomerSelectors() {
+      $("#customerSelect").innerHTML = state.customers.map(customer => `<option value="${customer.id}">${customer.name}</option>`).join("");
+      $("#customerSelect").value = state.selectedCustomerId;
+      $("#customerModelSelect").innerHTML = state.models.map(model => `<option value="${model.id}">${model.name}</option>`).join("");
+      $("#customerModelSelect").value = state.selectedModelId;
+      const customer = customerById(state.selectedCustomerId);
+      $("#routingModeSelect").value = customer.mode;
+      $("#maxLatencyInput").value = customer.maxLatency;
+    }
+
+    function effectiveCustomerRoutes() {
+      const model = modelById($("#customerModelSelect").value) || modelById(state.selectedModelId) || state.models[0];
+      const customer = customerById($("#customerSelect").value) || customerById(state.selectedCustomerId) || state.customers[0];
+      const overrides = customer.overrides[model.id] || {};
+      return modelRoutes(model)
+        .map(route => {
+          const input = $(`[data-customer-weight="${route.channelId}"]`);
+          const draftWeight = input ? Number(input.value || 0) : null;
+          const hasDraft = input && draftWeight !== route.weight;
+          const hasOverride = Object.prototype.hasOwnProperty.call(overrides, route.channelId);
+          return {
+            ...route,
+            weight: hasDraft ? draftWeight : hasOverride ? Number(overrides[route.channelId]) : route.weight,
+            source: hasDraft || hasOverride ? "客户覆盖" : "默认继承",
+            changed: Boolean(hasDraft || hasOverride)
+          };
+        })
+        .filter(route => route.weight > 0);
+    }
+
+    function renderCustomerRoutes() {
+      const model = modelById($("#customerModelSelect").value) || modelById(state.selectedModelId) || state.models[0];
+      const customer = customerById($("#customerSelect").value) || customerById(state.selectedCustomerId) || state.customers[0];
+      const overrides = customer.overrides[model.id] || {};
+      $("#customerRoutes").innerHTML = modelRoutes(model).map(route => {
+        const hasOverride = Object.prototype.hasOwnProperty.call(overrides, route.channelId);
+        const value = hasOverride ? overrides[route.channelId] : route.weight;
+        return `
+          <div class="route-row ${hasOverride ? "changed" : ""}">
+            <div>
+              <strong>${route.channel.name}</strong>
+              <small>${hasOverride ? "客户覆盖" : "默认继承"} / 默认权重 ${route.weight} / ${discountText(route.channel.discount)} / P95 ${route.channel.latency}ms</small>
+            </div>
+            <input type="number" min="0" step="10" data-customer-weight="${route.channelId}" value="${value}">
+          </div>
+        `;
+      }).join("");
+      renderEffectiveRouteResult();
+    }
+
+    function saveCustomerRule() {
+      const customer = customerById($("#customerSelect").value);
+      const model = modelById($("#customerModelSelect").value);
+      if (!customer || !model) return;
+      customer.mode = $("#routingModeSelect").value;
+      customer.maxLatency = Number($("#maxLatencyInput").value || customer.maxLatency);
+      const overrides = {};
+      modelRoutes(model).forEach(route => {
+        const input = $(`[data-customer-weight="${route.channelId}"]`);
+        const next = Number(input.value || 0);
+        if (next !== route.weight) overrides[route.channelId] = next;
+      });
+      customer.overrides[model.id] = overrides;
+      const diffCount = Object.keys(overrides).length;
+      toast("客户规则已保存", `${customer.name} / ${model.name} 有 ${diffCount} 个渠道权重覆盖。`);
+      renderAll();
+    }
+
+    function renderEffectiveRouteResult() {
+      const routes = effectiveCustomerRoutes();
+      const total = weightTotal(routes);
+      const discount = routes.length ? weightedDiscount(null, routes) : 0;
+      const latency = routes.length ? weightedLatency(routes) : 0;
+      $("#finalChannelCount").textContent = routes.length;
+      $("#finalDiscount").textContent = discountText(discount);
+      $("#finalLatency").textContent = `${latency}ms`;
+      const changed = routes.filter(route => route.changed).length;
+      $("#inheritanceResult").innerHTML = changed
+        ? `<strong>已继承默认规则，并覆盖 ${changed} 个渠道权重。</strong>`
+        : `<strong>完全继承默认规则。</strong>`;
+      $("#effectiveRouteTable").innerHTML = routes.map(route => {
+        const share = total ? route.weight / total : 0;
+        const contribution = route.channel.discount * share;
+        return `
+          <tr>
+            <td>${route.channel.name}</td>
+            <td><span class="badge ${route.changed ? "purple" : "gray"}">${route.source}</span></td>
+            <td>${route.weight}</td>
+            <td>${discountText(route.channel.discount)}</td>
+            <td>${discountText(contribution)} (${(share * 100).toFixed(1)}%)</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderCostSelectors() {
+      $("#costModelSelect").innerHTML = state.models.map(model => `<option value="${model.id}">${model.name}</option>`).join("");
+      $("#costModelSelect").value = state.selectedModelId;
+    }
+
+    function renderCostTable() {
+      const model = modelById($("#costModelSelect").value) || modelById(state.selectedModelId) || state.models[0];
+      const routes = modelRoutes(model);
+      const total = weightTotal(routes);
+      $("#costTable").innerHTML = routes.map(route => {
+        const share = total ? route.weight / total : 0;
+        const contribution = route.channel.discount * share;
+        return `
+          <tr>
+            <td>${route.channel.name}</td>
+            <td>${route.weight}</td>
+            <td>${(share * 100).toFixed(2)}%</td>
+            <td>${discountText(route.channel.discount)} / ${ratioText(route.channel.discount)}</td>
+            <td>${discountText(contribution)} / ${ratioText(contribution)}</td>
+          </tr>
+        `;
+      }).join("") || `<tr><td colspan="5"><div class="empty">当前模型没有渠道权重</div></td></tr>`;
+      const discount = weightedDiscount(model);
+      $("#weightedDiscount").textContent = discountText(discount);
+      $("#weightedRatio").textContent = ratioText(discount);
+      $("#weightedCount").textContent = routes.length;
+    }
+
+    function populateMonthlyDayOptions() {
+      $("#monthlyDayInput").innerHTML = Array.from({ length: 28 }, (_, index) => {
+        const day = index + 1;
+        return `<option value="${day}">每月 ${day} 日</option>`;
+      }).join("");
+    }
+
+    function bindEvents() {
+      document.addEventListener("click", event => {
+        const navButton = event.target.closest("[data-view]");
+        if (navButton) switchView(navButton.dataset.view);
+
+        const editModel = event.target.closest("[data-edit-model]");
+        if (editModel) {
+          state.selectedModelId = editModel.dataset.editModel;
+          renderAll();
+          openMappingModal(editModel.dataset.editModel);
+        }
+
+        const testModel = event.target.closest("[data-test-model]");
+        if (testModel) runModelAutoTest(testModel.dataset.testModel);
+
+        const editChannel = event.target.closest("[data-edit-channel]");
+        if (editChannel) {
+          state.selectedChannelId = editChannel.dataset.editChannel;
+          renderAll();
+          openChannelModal(editChannel.dataset.editChannel);
+        }
+
+        const monthly = event.target.closest("[data-monthly-test]");
+        if (monthly) runMonthly(monthly.dataset.monthlyTest);
+      });
+
+      $("#menuBtn").addEventListener("click", () => document.body.classList.toggle("menu-open"));
+      $("#globalSearch").addEventListener("input", renderAll);
+      $("#playgroundTabs").addEventListener("click", event => {
+        const tabButton = event.target.closest("[data-playground-tab]");
+        if (!tabButton) return;
+        state.selectedPlaygroundTab = tabButton.dataset.playgroundTab;
+        renderPlayground();
+      });
+      $("#playgroundProtocolOptions").addEventListener("click", event => {
+        const scenarioButton = event.target.closest("[data-playground-scenario]");
+        if (!scenarioButton) return;
+        const scenario = playgroundScenarioById(scenarioButton.dataset.playgroundScenario);
+        state.selectedPlaygroundTab = scenario.category;
+        state.selectedPlaygroundScenario = scenario.id;
+        state.selectedPlaygroundScenarioByTab[scenario.category] = scenario.id;
+        renderPlayground();
+      });
+      $("#runPlaygroundBtn").addEventListener("click", () => {
+        const scenario = currentPlaygroundScenario();
+        toast("模拟调用完成", `${scenario.endpoint} 已按 ${scenario.protocol} 返回示例响应。`);
+      });
+      $("#addModelBtn").addEventListener("click", addModel);
+      $("#saveMappingBtn").addEventListener("click", saveMapping);
+      $("#mappingCloseBtn").addEventListener("click", closeMappingModal);
+      $("#mappingCancelBtn").addEventListener("click", closeMappingModal);
+      $("#mappingModal").addEventListener("click", event => {
+        if (event.target === $("#mappingModal")) closeMappingModal();
+      });
+      $("#channelCloseBtn").addEventListener("click", closeChannelModal);
+      $("#channelCancelBtn").addEventListener("click", closeChannelModal);
+      $("#channelModal").addEventListener("click", event => {
+        if (event.target === $("#channelModal")) closeChannelModal();
+      });
+      $("#syncChannelModelsBtn").addEventListener("click", syncChannelModels);
+      $("#testSelectedModelBtn").addEventListener("click", () => runModelAutoTest(state.selectedModelId));
+      $("#cloneRuleBtn").addEventListener("click", () => {
+        closeMappingModal();
+        switchView("load");
+      });
+      document.addEventListener("change", event => {
+        if (event.target.matches('input[name="model-input-ability"], input[name="model-output-ability"]')) {
+          const model = modelById(state.selectedModelId);
+          renderChannelChecks(model);
+          $("#mappingCostText").textContent = "保存后将按新的输入/输出能力和所选渠道重新估算成本。";
+        }
+        if (event.target.matches("[data-map-channel]")) {
+          refreshFallbackOrderLabels();
+        }
+      });
+      $("#modelNameInput").addEventListener("input", () => {
+        const model = modelById(state.selectedModelId);
+        renderChannelChecks(model);
+      });
+      document.addEventListener("dragstart", handleFallbackDragStart);
+      document.addEventListener("dragover", handleFallbackDragOver);
+      document.addEventListener("dragend", handleFallbackDragEnd);
+      document.addEventListener("drop", event => {
+        if (event.target.closest("[data-map-row]")) event.preventDefault();
+        handleFallbackDragEnd();
+      });
+      $("#addChannelBtn").addEventListener("click", addChannel);
+      $("#saveChannelBtn").addEventListener("click", saveChannel);
+      $("#refreshMonitorBtn").addEventListener("click", () => {
+        renderMonitorDashboard();
+        toast("监控已刷新", "已重新计算线上模型可用状态与渠道费用播报。");
+      });
+      $("#testModelSelect").addEventListener("change", renderTestChannelOptions);
+      $("#runProbeBtn").addEventListener("click", runSelectedProbe);
+      $("#quickTestBtn").addEventListener("click", () => runModelAutoTest(state.selectedModelId));
+      $("#runAllMonthlyBtn").addEventListener("click", runAllMonthly);
+      $("#customerSelect").addEventListener("change", event => {
+        state.selectedCustomerId = event.target.value;
+        renderAll();
+      });
+      $("#customerModelSelect").addEventListener("change", event => {
+        state.selectedModelId = event.target.value;
+        renderAll();
+      });
+      $("#saveCustomerRuleBtn").addEventListener("click", saveCustomerRule);
+      $("#routingModeSelect").addEventListener("change", renderEffectiveRouteResult);
+      $("#maxLatencyInput").addEventListener("input", renderEffectiveRouteResult);
+      document.addEventListener("input", event => {
+        if (event.target.matches("[data-customer-weight]")) renderEffectiveRouteResult();
+      });
+      $("#costModelSelect").addEventListener("change", event => {
+        state.selectedModelId = event.target.value;
+        renderAll();
+      });
+      $("#costMode").addEventListener("click", event => {
+        const button = event.target.closest("button[data-mode]");
+        if (!button) return;
+        state.selectedCostMode = button.dataset.mode;
+        $all("#costMode button").forEach(item => item.classList.toggle("active", item === button));
+      });
+      document.addEventListener("keydown", event => {
+        if (event.key !== "Escape") return;
+        if ($("#mappingModal").classList.contains("open")) {
+          closeMappingModal();
+        }
+        if ($("#channelModal").classList.contains("open")) {
+          closeChannelModal();
+        }
+      });
+      window.addEventListener("resize", () => {
+        if (usageChart) usageChart.resize();
+      });
+    }
+
+    function renderAll() {
+      renderNav();
+      renderMetrics();
+      renderModelTable();
+      renderPlayground();
+      renderUsageRanking();
+      renderMonitorDashboard();
+      renderMappingEditor();
+      renderChannelTable();
+      renderChannelEditor();
+      renderTestSelectors();
+      renderTimeline();
+      renderMonthlyPlan();
+      renderCustomerSelectors();
+      renderCustomerRoutes();
+      renderCostSelectors();
+      renderCostTable();
+    }
+
+    populateMonthlyDayOptions();
+    bindEvents();
+    renderAll();
+  </script>
+</body>
+</html>
